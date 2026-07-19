@@ -1,0 +1,85 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  BookOpen,
+  FileText,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Leaf,
+} from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
+import { toggleSidebar } from '../../store/slices/uiSlice';
+
+const NAV_ITEMS = [
+  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+  { href: '/admin/dashboard/standards', icon: BookOpen, label: 'Standards', exact: false },
+  { href: '/admin/dashboard/pages', icon: FileText, label: 'Pages', exact: false },
+  { href: '/admin/dashboard/settings', icon: Settings, label: 'Settings', exact: false },
+];
+
+export default function Sidebar() {
+  const dispatch = useAppDispatch();
+  const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
+  const pathname = usePathname();
+
+  const isActive = (href: string, exact: boolean) =>
+    exact ? pathname === href : pathname.startsWith(href);
+
+  return (
+    <aside
+      className={[
+        'relative flex flex-col bg-charcoal-900 text-white transition-all duration-300 shrink-0',
+        'border-r border-charcoal-800',
+        collapsed ? 'w-16' : 'w-60',
+      ].join(' ')}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-4 py-5 border-b border-charcoal-8min-h-16.25px]">
+        <div className="flex items-center justify-center w-8 h-8 bg-brand-red rounded-lg shrink-0">
+          <Leaf size={16} className="text-white" />
+        </div>
+        {!collapsed && (
+          <span className="font-bold text-sm tracking-wide whitespace-nowrap">
+            RenewCred CMS
+          </span>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 py-4 px-2 flex flex-col gap-1">
+        {NAV_ITEMS.map(({ href, icon: Icon, label, exact }) => {
+          const active = isActive(href, exact);
+          return (
+            <Link
+              key={href}
+              href={href}
+              title={collapsed ? label : undefined}
+              className={[
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
+                active
+                  ? 'bg-brand-red text-white'
+                  : 'text-warm-gray-400 hover:bg-charcoal-800 hover:text-white',
+              ].join(' ')}
+            >
+              <Icon size={18} className="shrink-0" />
+              {!collapsed && <span className="whitespace-nowrap">{label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Collapse Toggle */}
+      <button
+        onClick={() => dispatch(toggleSidebar())}
+        className="absolute -right-3 top-20 z-10 flex items-center justify-center w-6 h-6 bg-charcoal-800 border border-charcoal-700 rounded-full text-warm-gray-400 hover:text-white hover:bg-brand-red hover:border-brand-red transition-all duration-150"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+      </button>
+    </aside>
+  );
+}
