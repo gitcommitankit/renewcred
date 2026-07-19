@@ -152,6 +152,7 @@ export default function VersionEditorPage() {
   const rootSections = allSections.filter((s) => !s.parentId);
 
   const [activeSection, setActiveSection] = useState<Section | null>(null);
+  const [activeTitle, setActiveTitle] = useState('');
   const [editorKey, setEditorKey] = useState(0);
   const [editorContent, setEditorContent] = useState<TiptapDocument | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Section | null>(null);
@@ -162,6 +163,7 @@ export default function VersionEditorPage() {
   useEffect(() => {
     if (allSections.length > 0 && !activeSection) {
       setActiveSection(allSections[0]);
+      setActiveTitle(allSections[0].title);
       setEditorContent(allSections[0].content);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -169,6 +171,7 @@ export default function VersionEditorPage() {
 
   const handleSelectSection = (section: Section) => {
     setActiveSection(section);
+    setActiveTitle(section.title);
     setEditorContent(section.content);
     // Force re-mount the editor so it cleanly loads the new content
     setEditorKey((k) => k + 1);
@@ -176,24 +179,25 @@ export default function VersionEditorPage() {
 
   // Debounced auto-save
   const debouncedContent = useDebounce(editorContent, 1500);
+  const debouncedTitle = useDebounce(activeTitle, 1500);
 
-  const doSave = useCallback(async (content: TiptapDocument, sectionId: string) => {
+  const doSave = useCallback(async (content: TiptapDocument, title: string, sectionId: string) => {
     try {
-      await updateSection({ id: sectionId, data: { content } }).unwrap();
+      await updateSection({ id: sectionId, versionId: params.versionId, data: { content, title } }).unwrap();
     } catch { /* silent on auto-save */ }
-  }, [updateSection]);
+  }, [updateSection, params.versionId]);
 
   useEffect(() => {
-    if (debouncedContent && activeSection) {
-      doSave(debouncedContent, activeSection.id);
+    if (debouncedContent && debouncedTitle && activeSection) {
+      doSave(debouncedContent, debouncedTitle, activeSection.id);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedContent]);
+  }, [debouncedContent, debouncedTitle]);
 
   const handleManualSave = async () => {
-    if (!activeSection || !editorContent) return;
+    if (!activeSection || !editorContent || !activeTitle.trim()) return;
     try {
-      await updateSection({ id: activeSection.id, data: { content: editorContent } }).unwrap();
+      await updateSection({ id: activeSection.id, versionId: params.versionId, data: { content: editorContent, title: activeTitle } }).unwrap();
       toast.success('Saved!');
     } catch {
       toast.error('Failed to save');
@@ -228,6 +232,7 @@ export default function VersionEditorPage() {
       setShowNewSection(false);
       setNewSection({ number: '', title: '', parentId: '' });
       setActiveSection(result.data);
+      setActiveTitle(result.data.title);
       setEditorContent(result.data.content);
       setEditorKey((k) => k + 1);
     } catch (err: unknown) {
@@ -242,6 +247,7 @@ export default function VersionEditorPage() {
       toast.success('Section deleted');
       if (activeSection?.id === deleteTarget.id) {
         setActiveSection(null);
+        setActiveTitle('');
         setEditorContent(null);
         setEditorKey((k) => k + 1);
       }
@@ -419,8 +425,14 @@ export default function VersionEditorPage() {
           ) : (
             <div className="mx-auto">
               <div className="flex items-center gap-3 mb-4">
-                <span className="text-xs font-mono text-warm-gray-500 bg-warm-gray-200 px-2 py-0.5 rounded">{activeSection.number}</span>
-                <h2 className="text-lg font-bold text-charcoal-900">{activeSection.title}</h2>
+                <span className="text-xs font-mono text-warm-gray-500 bg-warm-gray-200 px-2 py-1 rounded shrink-0">{activeSection.number}</span>
+                <input
+                  type="text"
+                  value={activeTitle}
+                  onChange={(e) => setActiveTitle(e.target.value)}
+                  placeholder="Section title"
+                  className="flex-1 text-lg font-bold text-charcoal-900 bg-transparent border-b-2 border-transparent hover:border-warm-gray-300 focus:outline-none transition-colors px-1 py-0.5"
+                />
               </div>
               <TiptapEditor
                 key={editorKey}

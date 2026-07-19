@@ -113,14 +113,17 @@ export const versionsApi = createApi({
 
     updateSection: builder.mutation<
       ApiResponse<Section>,
-      { id: string; data: UpdateSectionInput }
+      { id: string; versionId: string; data: UpdateSectionInput }
     >({
       query: ({ id, data }) => ({
         url: `/admin/sections/${id}`,
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Section', id }],
+      invalidatesTags: (_result, _error, { id, versionId }) => [
+        { type: 'Section', id },
+        { type: 'Section', id: `LIST-${versionId}` },
+      ],
     }),
 
     deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string }>({
