@@ -181,9 +181,6 @@ export class VersionsService {
     const version = await prisma.version.findUnique({
       where: { id },
       include: {
-        sections: {
-          orderBy: { sortOrder: 'asc' },
-        },
         standard: {
           select: { id: true, title: true, slug: true },
         },
@@ -260,7 +257,11 @@ export class VersionsService {
     const operations = data.sections.map((s) =>
       prisma.section.update({
         where: { id: s.id },
-        data: { sortOrder: s.sortOrder, parentId: s.parentId ?? null },
+        data: {
+          sortOrder: s.sortOrder,
+          parentId: s.parentId ?? null,
+          ...(s.number !== undefined ? { number: s.number } : {}),
+        },
       })
     );
 

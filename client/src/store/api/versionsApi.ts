@@ -123,17 +123,19 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { id }) => [{ type: 'Section', id }],
     }),
 
-    deleteSection: builder.mutation<ApiResponse<null>, string>({
-      query: (id) => ({
+    deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string }>({
+      query: ({ id }) => ({
         url: `/admin/sections/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Section', id: 'LIST' }],
+      invalidatesTags: (_result, _error, { versionId }) => [
+        { type: 'Section', id: `LIST-${versionId}` },
+      ],
     }),
 
     reorderSections: builder.mutation<
       ApiResponse<null>,
-      { versionId: string; sections: ReorderSectionItem[] }
+      { versionId: string; sections: Array<ReorderSectionItem & { number: string }> }
     >({
       query: ({ versionId, sections }) => ({
         url: `/admin/versions/${versionId}/sections/reorder`,

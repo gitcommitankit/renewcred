@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 
-// Root of the (public) group redirects to /standards
-export default function PublicHomePage() {
+export default function HomePage() {
   redirect('/standards');
 }

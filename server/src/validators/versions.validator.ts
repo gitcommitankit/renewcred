@@ -37,6 +37,7 @@ export const reorderSectionsSchema = z.object({
       id: z.string().uuid(),
       sortOrder: z.number().int(),
       parentId: z.string().uuid().optional().nullable(),
+      number: z.string().optional(),
     })
   ),
 });
