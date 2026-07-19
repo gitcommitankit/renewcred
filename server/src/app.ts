@@ -2,22 +2,53 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import morgan from 'morgan';
+import { env } from './config/env.js';
+import routes from './routes/index.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
 
+// ---- Security ----
 app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(express.json());
+app.use(
+  cors({
+    origin: env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
-app.get('/', (_req, res) => {
-  res.json({
-    message: 'Hello! Renewcred CMS API is running 🚀',
+// ---- Parsing ----
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// ---- Compression ----
+app.use(compression());
+
+// ---- Logging ----
+if (env.NODE_ENV !== 'test') {
+  app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+}
+
+// ---- Rate Limiting ----
+app.use('/api/', apiLimiter);
+
+// ---- Routes ----
+app.use('/api/v1', routes);
+
+// ---- 404 handler ----
+app.use((_req, res) => {
+  res.status(404).json({
+    success: false,
+    statusCode: 404,
+    message: 'Route not found',
   });
 });
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// ---- Global Error Handler ----
+app.use(errorHandler);
 
-export { app };
+export default app;

@@ -1,0 +1,123 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// Authentication
+
+
+model Admin {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
+
+
+// Standards & Versioned Content
+
+
+model Standard {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  description String    @db.Text
+  icon        String?
+  sortOrder   Int       @default(0) @map("sort_order")
+  isPublished Boolean   @default(false) @map("is_published")
+  versions    Version[]
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("standards")
+}
+
+enum VersionStatus {
+  DRAFT
+  PUBLIC_CONSULTATION
+  CERTIFIED
+}
+
+model Version {
+  id                    String        @id @default(uuid())
+  standardId            String        @map("standard_id")
+  standard              Standard      @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  versionLabel          String        @map("version_label")
+  slug                  String
+  status                VersionStatus @default(DRAFT)
+  certifiedAt           DateTime?     @map("certified_at")
+  consultationStartDate DateTime?     @map("consultation_start_date")
+  consultationEndDate   DateTime?     @map("consultation_end_date")
+  isLatest              Boolean       @default(false) @map("is_latest")
+  sections              Section[]
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  @@unique([standardId, slug])
+  @@map("versions")
+}
+
+model Section {
+  id        String    @id @default(uuid())
+  versionId String    @map("version_id")
+  version   Version   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  number    String
+  title     String
+  slug      String
+  content   Json      @default("{}")
+  parentId  String?   @map("parent_id")
+  parent    Section?  @relation("SectionTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Section[] @relation("SectionTree")
+  sortOrder Int       @default(0) @map("sort_order")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([versionId, slug])
+  @@map("sections")
+}
+
+
+// Generic Pages (Buyers, Suppliers, Contact Us, etc.)
+
+
+model Page {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     Json     @default("{}")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("pages")
+}
+
+
+// Site Settings (Singleton)
+
+
+model SiteSettings {
+  id                String  @id @default("singleton")
+  siteName          String  @default("RenewCred") @map("site_name")
+  tagline           String?
+  address           String?
+  email             String?
+  phone             String?
+  socialLinks       Json?   @map("social_links")
+  footerText        String? @map("footer_text")
+  newsletterEnabled Boolean @default(true) @map("newsletter_enabled")
+
+  @@map("site_settings")
+}
