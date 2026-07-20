@@ -130,7 +130,11 @@ export default function TiptapEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Disable StarterKit's bundled link mark to prevent duplicate extension
+        // warning — we configure Link explicitly below with more options.
+        link: false,
+      }),
       Placeholder.configure({ placeholder }),
       LinkExtension.configure({ openOnClick: false, autolink: true }),
       Highlight,
@@ -142,6 +146,8 @@ export default function TiptapEditor({
     ],
     content: content || undefined,
     editable,
+    // Suppress Next.js hydration warning — this editor is always client-only
+    immediatelyRender: true,
     onUpdate: ({ editor }) => {
       onChange(editor.getJSON() as TiptapDocument);
     },
@@ -181,7 +187,7 @@ export default function TiptapEditor({
     <div className="flex flex-col border border-warm-gray-300 rounded-xl overflow-hidden bg-white">
       {/* Toolbar */}
       {editable && (
-        <div className="relative flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-warm-gray-200 bg-[#fafaf9]">
+        <div className="relative flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-warm-gray-200 bg-warm-gray-100">
           {/* Undo / Redo */}
           <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
             <Undo size={14} />
@@ -308,6 +314,12 @@ export default function TiptapEditor({
         .tiptap-editor .ProseMirror ul { list-style: disc; padding-left: 1.25rem; margin-bottom: 0.75rem; }
         .tiptap-editor .ProseMirror ol { list-style: decimal; padding-left: 1.25rem; margin-bottom: 0.75rem; }
         .tiptap-editor .ProseMirror li { margin-bottom: 0.2rem; }
+        /* Nested lists — first level */
+        .tiptap-editor .ProseMirror li > ul { list-style: circle; margin-top: 0.2rem; margin-bottom: 0.1rem; }
+        .tiptap-editor .ProseMirror li > ol { list-style: lower-alpha; margin-top: 0.2rem; margin-bottom: 0.1rem; }
+        /* Nested lists — second level */
+        .tiptap-editor .ProseMirror li > ul li > ul { list-style: square; }
+        .tiptap-editor .ProseMirror li > ol li > ol { list-style: lower-roman; }
         .tiptap-editor .ProseMirror blockquote {
           border-left: 3px solid #e03b2f;
           padding-left: 1rem;

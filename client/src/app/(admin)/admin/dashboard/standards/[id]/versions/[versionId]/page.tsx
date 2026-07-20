@@ -29,7 +29,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import {
   useCreateSectionMutation,
   useDeleteSectionMutation,
-  useGetSectionsQuery,
   useGetVersionByIdQuery,
   useUpdateSectionMutation,
   useReorderSectionsMutation,
@@ -141,14 +140,13 @@ export default function VersionEditorPage() {
   const params = useParams<{ id: string; versionId: string }>();
 
   const { data: versionData, isLoading: versionLoading } = useGetVersionByIdQuery(params.versionId);
-  const { data: sectionsData, isLoading: sectionsLoading } = useGetSectionsQuery(params.versionId);
   const [createSection, { isLoading: isCreating }] = useCreateSectionMutation();
   const [updateSection, { isLoading: isSaving }] = useUpdateSectionMutation();
   const [deleteSection, { isLoading: isDeleting }] = useDeleteSectionMutation();
   const [reorderSections] = useReorderSectionsMutation();
 
   const version = versionData?.data;
-  const allSections = [...(sectionsData?.data ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+  const allSections = [...(version?.sections ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
   const rootSections = allSections.filter((s) => !s.parentId);
 
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -157,7 +155,7 @@ export default function VersionEditorPage() {
   const [editorContent, setEditorContent] = useState<TiptapDocument | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Section | null>(null);
   const [showNewSection, setShowNewSection] = useState(false);
-  const [newSection, setNewSection] = useState({ number: '', title: '', parentId: '' });
+  const [newSection, setNewSection] = useState({ title: '', parentId: '' });
 
   // Build the content sent INTO the editor
   const buildEditorContent = useCallback((section: Section): TiptapDocument => {
@@ -196,6 +194,18 @@ export default function VersionEditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!allSections.length]);
 
+  // Clear active section if it was deleted (e.g., as a child of a deleted parent)
+  useEffect(() => {
+    if (activeSectionId && allSections.length > 0) {
+      const stillExists = allSections.some((s) => s.id === activeSectionId);
+      if (!stillExists) {
+        setActiveSectionId(null);
+        setEditorContent(null);
+        setEditorKey((k) => k + 1);
+      }
+    }
+  }, [allSections, activeSectionId]);
+
   const handleSelectSection = (section: Section) => {
     setActiveSectionId(section.id);
     setEditorContent(buildEditorContent(section));
@@ -233,22 +243,33 @@ export default function VersionEditorPage() {
   };
 
   const handleCreateSection = async () => {
-    if (!newSection.number.trim() || !newSection.title.trim()) {
-      toast.error('Number and title are required');
+    if (!newSection.title.trim()) {
+      toast.error('Title is required');
       return;
     }
     try {
-      const slug = `${newSection.number.replace(/\./g, '-')}-${slugify(newSection.title)}`;
       const selectedParentId = newSection.parentId || null;
 
       // Calculate sortOrder: put it after the last sibling with the same parent
       const siblings = allSections.filter((s) => s.parentId === selectedParentId);
       const sortOrder = siblings.length > 0 ? Math.max(...siblings.map((s) => s.sortOrder)) + 1 : allSections.length;
 
+      // Auto-compute number based on parent and sibling position
+      let generatedNumber = '';
+      if (!selectedParentId) {
+        generatedNumber = `${siblings.length + 1}.0`;
+      } else {
+        const parent = allSections.find(s => s.id === selectedParentId);
+        const parentBase = parent?.number.endsWith('.0') ? parent.number.slice(0, -2) : parent?.number;
+        generatedNumber = `${parentBase}.${siblings.length + 1}`;
+      }
+
+      const slug = `${generatedNumber.replace(/\./g, '-')}-${slugify(newSection.title)}`;
+
       const result = await createSection({
         versionId: params.versionId,
         data: {
-          number: newSection.number,
+          number: generatedNumber,
           title: newSection.title,
           slug,
           parentId: selectedParentId,
@@ -258,7 +279,7 @@ export default function VersionEditorPage() {
       }).unwrap();
       toast.success('Section created');
       setShowNewSection(false);
-      setNewSection({ number: '', title: '', parentId: '' });
+      setNewSection({ title: '', parentId: '' });
       setActiveSectionId(result.data.id);
       setEditorContent(buildEditorContent(result.data));
       setEditorKey((k) => k + 1);
@@ -291,9 +312,10 @@ export default function VersionEditorPage() {
     const result = new Map<string, string>();
     const siblings = sections.filter((s) => s.parentId === parentId);
     siblings.forEach((s, i) => {
-      const num = prefix ? `${prefix}.${i + 1}` : `${i + 1}.0`;
+      const basePrefix = prefix ? `${prefix}.${i + 1}` : `${i + 1}`;
+      const num = prefix ? basePrefix : `${basePrefix}.0`;
       result.set(s.id, num);
-      const childNums = computeNumbers(sections, s.id, num);
+      const childNums = computeNumbers(sections, s.id, basePrefix);
       childNums.forEach((v, k) => result.set(k, v));
     });
     return result;
@@ -329,7 +351,7 @@ export default function VersionEditorPage() {
     }
   };
 
-  if (versionLoading || sectionsLoading) {
+  if (versionLoading) {
     return (
       <div className="flex justify-center py-20">
         <Spinner size="lg" className="text-brand-red" />
@@ -338,7 +360,7 @@ export default function VersionEditorPage() {
   }
 
   return (
-    <div className="flex flex-col -m-6 h-[calc(100vh-65px)] md:h-[calc(100vh-65px)]">
+    <div className="flex flex-col -m-6 h-dashboard md:h-dashboard">
       {/* Top sub-bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-warm-gray-200 shrink-0">
         <div className="flex items-center gap-3">
@@ -370,7 +392,7 @@ export default function VersionEditorPage() {
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
 
         {/* Left: Section Tree */}
-        <div className="w-full md:w-64 flex flex-col bg-white border-b md:border-b-0 md:border-r border-warm-gray-200 overflow-y-auto shrink-0 md:max-h-full max-h-[40vh]">
+        <div className="w-full md:w-64 flex flex-col bg-white border-b md:border-b-0 md:border-r border-warm-gray-200 overflow-y-auto shrink-0 md:max-h-full max-h-40vh">
           <div className="flex items-center justify-between px-3 py-3 border-b border-warm-gray-200">
             <span className="text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Sections</span>
             <button onClick={() => setShowNewSection((v) => !v)} className="p-1 text-warm-gray-500 hover:text-brand-red transition-colors rounded" title="Add section">
@@ -380,12 +402,8 @@ export default function VersionEditorPage() {
 
           {/* New section inline form */}
           {showNewSection && (
-            <div className="p-3 border-b border-warm-gray-200 bg-[#fafaf9] flex flex-col gap-2">
-              <Input
-                placeholder="Number (e.g. 3.0)"
-                value={newSection.number}
-                onChange={(e) => setNewSection((s) => ({ ...s, number: e.target.value }))}
-              />
+            <div className="p-3 border-b border-warm-gray-200 bg-warm-gray-100 flex flex-col gap-2">
+
               <Input
                 placeholder="Title"
                 value={newSection.title}
@@ -407,7 +425,7 @@ export default function VersionEditorPage() {
                 <button onClick={handleCreateSection} disabled={isCreating} className="flex-1 py-1.5 text-xs font-medium bg-brand-red text-white rounded-lg hover:bg-brand-red-dark transition-colors">
                   {isCreating ? 'Creating…' : 'Create'}
                 </button>
-                <button onClick={() => setShowNewSection(false)} className="flex-1 py-1.5 text-xs font-medium border border-warm-gray-300 text-[#555] rounded-lg hover:bg-warm-gray-100 transition-colors">
+                <button onClick={() => setShowNewSection(false)} className="flex-1 py-1.5 text-xs font-medium border border-warm-gray-300 text-charcoal-600 rounded-lg hover:bg-warm-gray-100 transition-colors">
                   Cancel
                 </button>
               </div>

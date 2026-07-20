@@ -26,6 +26,12 @@ function VersionStatusLabel({ status }: { status: string }) {
   );
 }
 
+function hasDescendantMatch(section: Section, allSections: Section[], search: string): boolean {
+  const children = allSections.filter((s) => s.parentId === section.id);
+  if (children.some((c) => c.title.toLowerCase().includes(search.toLowerCase()))) return true;
+  return children.some((c) => hasDescendantMatch(c, allSections, search));
+}
+
 function TocItem({
   section,
   allSections,
@@ -44,7 +50,7 @@ function TocItem({
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const titleMatch = section.title.toLowerCase().includes(search.toLowerCase());
-  const childMatch = children.some((c) => c.title.toLowerCase().includes(search.toLowerCase()));
+  const childMatch = hasDescendantMatch(section, allSections, search);
   if (search && !titleMatch && !childMatch) return null;
 
   const scrollTo = () => {
@@ -129,7 +135,7 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
           placeholder="Search sections…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-warm-gray-200 rounded-lg bg-warm-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-transparent transition-colors"
+          className="w-full pl-9 pr-3 py-2 text-sm border border-warm-gray-200 rounded-lg bg-warm-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-red transition-colors"
         />
       </div>
 

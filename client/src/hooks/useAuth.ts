@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from './useRedux';
 import { useLoginMutation, useLogoutMutation } from '@/store/api/authApi';
 import { LoginRequest } from '@/types';
 import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
+import { AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
 
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -21,7 +22,7 @@ export function useAuth() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('admin', JSON.stringify(admin));
-        document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; SameSite=Lax`;
       }
 
       dispatch(

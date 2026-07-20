@@ -45,28 +45,16 @@ const authSlice = createSlice({
       state.isLoading = false;
     },
 
-    updateTokens(
-      state,
-      action: PayloadAction<{ accessToken: string }>
-    ) {
-      const { accessToken } = action.payload;
-      state.accessToken = accessToken;
-    },
-
     clearCredentials(state) {
       state.admin = null;
       state.accessToken = null;
       state.isAuthenticated = false;
       state.isLoading = false;
     },
-
-    setLoading(state, action: PayloadAction<boolean>) {
-      state.isLoading = action.payload;
-    },
   },
 });
 
-export const { setCredentials, updateTokens, clearCredentials, setLoading } =
+export const { setCredentials, clearCredentials } =
   authSlice.actions;
 
 export default authSlice.reducer;

@@ -11,11 +11,6 @@ export interface Admin {
   createdAt: string;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -128,45 +123,6 @@ export interface ReorderSectionItem {
   sortOrder: number;
   parentId?: string | null;
 }
-
-// ---- Pages ----
-
-export interface Page {
-  id: string;
-  title: string;
-  slug: string;
-  content: TiptapDocument;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type UpdatePageInput = {
-  title?: string;
-  content?: TiptapDocument;
-  isPublished?: boolean;
-};
-
-// ---- Site Settings ----
-
-export interface SiteSettings {
-  id: string;
-  siteName: string;
-  tagline: string | null;
-  address: string | null;
-  email: string | null;
-  phone: string | null;
-  socialLinks: {
-    facebook?: string;
-    twitter?: string;
-    linkedin?: string;
-    instagram?: string;
-  } | null;
-  footerText: string | null;
-  newsletterEnabled: boolean;
-}
-
-export type UpdateSettingsInput = Partial<Omit<SiteSettings, 'id'>>;
 
 // ---- Tiptap ----
 

@@ -49,16 +49,10 @@ export default function DashboardPage() {
       </div>
 
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-[#555] uppercase tracking-wider mb-3">Quick Actions</h3>
+        <h3 className="text-sm font-semibold text-charcoal-600 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
           <Link href="/admin/dashboard/standards/new" className="flex items-center gap-2 px-4 py-2 bg-brand-red text-white text-sm font-medium rounded-lg hover:bg-brand-red-dark transition-colors">
             <Plus size={15} /> New Standard
-          </Link>
-          <Link href="/admin/dashboard/pages" className="flex items-center gap-2 px-4 py-2 bg-white border border-warm-gray-300 text-charcoal-900 text-sm font-medium rounded-lg hover:bg-warm-gray-100 transition-colors">
-            <FileText size={15} /> Manage Pages
-          </Link>
-          <Link href="/admin/dashboard/settings" className="flex items-center gap-2 px-4 py-2 bg-white border border-warm-gray-300 text-charcoal-900 text-sm font-medium rounded-lg hover:bg-warm-gray-100 transition-colors">
-            Site Settings
           </Link>
         </div>
       </div>
@@ -88,11 +82,11 @@ export default function DashboardPage() {
             </thead>
             <tbody>
               {standards.map((s: Standard) => (
-                <tr key={s.id} className="border-b border-warm-gray-100 hover:bg-[#fafaf9] transition-colors">
+                <tr key={s.id} className="border-b border-warm-gray-100 hover:bg-warm-gray-100 transition-colors">
                   <td className="px-5 py-3 font-medium text-charcoal-900">
                     {s.icon && <span className="mr-2">{s.icon}</span>}{s.title}
                   </td>
-                  <td className="px-5 py-3 text-[#555] hidden sm:table-cell">{s._count?.versions ?? 0}</td>
+                  <td className="px-5 py-3 text-charcoal-600 hidden sm:table-cell">{s._count?.versions ?? 0}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                       {s.isPublished ? 'Published' : 'Draft'}

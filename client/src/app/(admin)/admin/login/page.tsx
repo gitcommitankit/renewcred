@@ -88,7 +88,7 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="pointer-events-auto text-warm-gray-500 hover:text-[#555] transition-colors"
+                  className="pointer-events-auto text-warm-gray-500 hover:text-charcoal-600 transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

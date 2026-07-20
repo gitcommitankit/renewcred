@@ -9,42 +9,6 @@ export class VersionsService {
   // Versions
   
   /**
-   * Get all non-draft versions for a standard (public)
-   */
-  static async getByStandardSlug(standardSlug: string) {
-    const versions = await prisma.version.findMany({
-      where: {
-        standard: { slug: standardSlug, isPublished: true },
-        status: { not: 'DRAFT' },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        versionLabel: true,
-        slug: true,
-        status: true,
-        certifiedAt: true,
-        consultationStartDate: true,
-        consultationEndDate: true,
-        isLatest: true,
-        createdAt: true,
-      },
-    });
-
-    if (versions.length === 0) {
-      const standardExists = await prisma.standard.findFirst({
-        where: { slug: standardSlug, isPublished: true },
-        select: { id: true },
-      });
-      if (!standardExists) {
-        throw ApiError.notFound('Standard not found');
-      }
-    }
-
-    return versions;
-  }
-
-  /**
    * Get a specific version with all sections (public)
    */
   static async getBySlug(standardSlug: string, versionSlug: string) {
@@ -178,6 +142,9 @@ export class VersionsService {
         standard: {
           select: { id: true, title: true, slug: true },
         },
+        sections: {
+          orderBy: { sortOrder: 'asc' },
+        },
       },
     });
 
@@ -192,15 +159,7 @@ export class VersionsService {
   // Sections
   
 
-  /**
-   * Get sections tree for a version (public)
-   */
-  static async getSections(versionId: string) {
-    return prisma.section.findMany({
-      where: { versionId },
-      orderBy: { sortOrder: 'asc' },
-    });
-  }
+
 
   /**
    * Create a section (admin)

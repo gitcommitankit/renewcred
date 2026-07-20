@@ -11,19 +11,15 @@ import {
   ChevronRight,
   Leaf,
 } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
-import { toggleSidebar } from '@/store/slices/uiSlice';
+import { useState } from 'react';
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { href: '/admin/dashboard/standards', icon: BookOpen, label: 'Standards', exact: false },
-  { href: '/admin/dashboard/pages', icon: FileText, label: 'Pages', exact: false },
-  { href: '/admin/dashboard/settings', icon: Settings, label: 'Settings', exact: false },
 ];
 
 export default function Sidebar() {
-  const dispatch = useAppDispatch();
-  const collapsed = useAppSelector((s) => s.ui.sidebarCollapsed);
+  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
   const isActive = (href: string, exact: boolean) =>
@@ -74,7 +70,7 @@ export default function Sidebar() {
 
       {/* Collapse Toggle */}
       <button
-        onClick={() => dispatch(toggleSidebar())}
+        onClick={() => setCollapsed(!collapsed)}
         className="absolute -right-3 top-20 z-10 flex items-center justify-center w-6 h-6 bg-charcoal-800 border border-charcoal-700 rounded-full text-warm-gray-400 hover:text-white hover:bg-brand-red hover:border-brand-red transition-all duration-150"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >

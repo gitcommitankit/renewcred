@@ -7,17 +7,6 @@ export const standardsApi = createApi({
   baseQuery: createBaseQuery(),
   tagTypes: ['Standard'],
   endpoints: (builder) => ({
-    // ---- Public ----
-    getPublishedStandards: builder.query<ApiResponse<Standard[]>, void>({
-      query: () => '/standards',
-      providesTags: [{ type: 'Standard', id: 'LIST' }],
-    }),
-
-    getStandardBySlug: builder.query<ApiResponse<Standard>, string>({
-      query: (slug) => `/standards/${slug}`,
-      providesTags: (_result, _error, slug) => [{ type: 'Standard', id: slug }],
-    }),
-
     // ---- Admin ----
     getAllStandards: builder.query<ApiResponse<Standard[]>, void>({
       query: () => '/admin/standards',
@@ -71,8 +60,6 @@ export const standardsApi = createApi({
 });
 
 export const {
-  useGetPublishedStandardsQuery,
-  useGetStandardBySlugQuery,
   useGetAllStandardsQuery,
   useGetStandardByIdQuery,
   useCreateStandardMutation,

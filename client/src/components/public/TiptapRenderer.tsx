@@ -4,7 +4,6 @@ import './tiptap-renderer.css';
 import type { TiptapDocument } from '@/types';
 
 // Mark renderer
-
 function renderMark(
   mark: { type: string; attrs?: Record<string, unknown> },
   text: string,
@@ -33,7 +32,6 @@ function renderMark(
 }
 
 // Math node
-
 function MathNode({ latex, displayMode }: { latex: string; displayMode: boolean }) {
   let html = '';
   try {
@@ -66,7 +64,6 @@ function MathNode({ latex, displayMode }: { latex: string; displayMode: boolean 
 }
 
 // Node renderer
-
 type RawNode = {
   type: string;
   text?: string;
@@ -85,7 +82,7 @@ function RenderNode({ node }: { node: RawNode }) {
     case 'text': {
       const text = node.text ?? '';
       if (!node.marks || node.marks.length === 0) return <>{text}</>;
-      // Apply marks — outermost mark wraps inner text
+      // Apply marks - outermost mark wraps inner text
       return (
         <>
           {node.marks.reduce<React.ReactNode>(
@@ -150,7 +147,7 @@ function RenderNode({ node }: { node: RawNode }) {
     case 'horizontalRule':
       return <hr className="rc-hr" />;
 
-    /* ── Math nodes from @tiptap/extension-mathematics ── */
+    // Math nodes from @tiptap/extension-mathematics
     case 'inlineMath':
     case 'mathInline': {
       const latex = (node.attrs?.latex as string) ?? (node.text ?? '');

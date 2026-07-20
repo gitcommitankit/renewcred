@@ -23,22 +23,8 @@ export const authApi = createApi({
         method: 'POST',
       }),
     }),
-
-    refresh: builder.mutation<
-      ApiResponse<{ accessToken: string }>,
-      void
-    >({
-      query: () => ({
-        url: '/refresh',
-        method: 'POST',
-      }),
-    }),
-
-    getMe: builder.query<ApiResponse<Admin>, void>({
-      query: () => '/me',
-    }),
   }),
 });
 
-export const { useLoginMutation, useLogoutMutation, useRefreshMutation, useGetMeQuery } =
+export const { useLoginMutation, useLogoutMutation } =
   authApi;

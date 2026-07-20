@@ -5,16 +5,6 @@ import type { Request, Response, NextFunction } from 'express';
 export class VersionsController {
   // ── Public endpoints (no auth required) ──────────────────────────
 
-  static async getByStandardSlug(req: Request, res: Response, next: NextFunction) {
-    try {
-      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-      const versions = await VersionsService.getByStandardSlug(req.params.slug as string);
-      res.json(ApiResponse.success(versions));
-    } catch (error) {
-      next(error);
-    }
-  }
-
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
       res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
@@ -35,15 +25,7 @@ export class VersionsController {
     }
   }
 
-  static async getSections(req: Request, res: Response, next: NextFunction) {
-    try {
-      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-      const sections = await VersionsService.getSections(req.params.versionId as string);
-      res.json(ApiResponse.success(sections));
-    } catch (error) {
-      next(error);
-    }
-  }
+
 
   // ── Admin endpoints (authenticate middleware required) ────────────
 

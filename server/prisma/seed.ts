@@ -170,8 +170,6 @@ async function main() {
   await prisma.section.deleteMany();
   await prisma.version.deleteMany();
   await prisma.standard.deleteMany();
-  await prisma.page.deleteMany();
-  await prisma.siteSettings.deleteMany();
   await prisma.admin.deleteMany();
 
   // ---- Create admin user ----
@@ -345,50 +343,7 @@ async function main() {
     console.log(`  📄 Sections created for ${standard.title}`);
   }
 
-  // ---- Create stub pages ----
-  const pages = [
-    { title: 'Buyers', slug: 'buyers', isPublished: true },
-    { title: 'Suppliers', slug: 'suppliers', isPublished: true },
-    { title: 'Climate & Us', slug: 'climate-and-us', isPublished: true },
-    { title: 'Science', slug: 'science', isPublished: true },
-    { title: 'Contact Us', slug: 'contact-us', isPublished: true },
-  ];
 
-  for (const pageData of pages) {
-    await prisma.page.create({
-      data: {
-        ...pageData,
-        content: tiptapDoc(
-          heading(1, pageData.title),
-          paragraph(`Welcome to the ${pageData.title} page. Content will be managed through the admin panel.`)
-        ) as object,
-      },
-    });
-  }
-
-  console.log('✅ Pages created');
-
-  // ---- Create site settings ----
-  await prisma.siteSettings.create({
-    data: {
-      id: 'singleton',
-      siteName: 'RenewCred',
-      tagline: 'There is no time to save the planet',
-      address: 'Indiranagar, Bengaluru, Karnataka, INDIA',
-      email: 'yp@renewcred.com',
-      phone: '',
-      socialLinks: {
-        facebook: 'https://facebook.com/renewcred',
-        twitter: 'https://twitter.com/renewcred',
-        linkedin: 'https://linkedin.com/company/renewcred',
-        instagram: 'https://instagram.com/renewcred',
-      },
-      footerText: 'CIN No.: XXXXXXXXX',
-      newsletterEnabled: true,
-    },
-  });
-
-  console.log('✅ Site settings created');
   console.log('');
   console.log('🎉 Seed completed successfully!');
   console.log('');

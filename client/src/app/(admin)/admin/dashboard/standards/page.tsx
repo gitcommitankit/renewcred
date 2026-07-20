@@ -64,20 +64,22 @@ export default function StandardsListPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-warm-gray-200 bg-[#fafaf9]">
-                {['Standard', 'Slug', 'Versions', 'Status', 'Order', ''].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">{h}</th>
-                ))}
+              <tr className="border-b border-warm-gray-200 bg-warm-gray-100">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Title / Slug</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Versions</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Order</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody>
               {standards.map((s: Standard) => (
-                <tr key={s.id} className="border-b border-warm-gray-100 hover:bg-[#fafaf9] transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-charcoal-900">
-                    {s.icon && <span className="mr-2 text-lg">{s.icon}</span>}{s.title}
+                <tr key={s.id} className="border-b border-warm-gray-100 hover:bg-warm-gray-100 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <p className="font-medium text-charcoal-900 flex items-center gap-2">{s.icon && <span>{s.icon}</span>} {s.title}</p>
+                    <p className="text-xs text-warm-gray-500 mt-0.5">/{s.slug}</p>
                   </td>
-                  <td className="px-5 py-3.5 text-warm-gray-500 font-mono text-xs">{s.slug}</td>
-                  <td className="px-5 py-3.5 text-[#555]">{s._count?.versions ?? 0}</td>
+                  <td className="px-5 py-3.5 text-charcoal-600">{s._count?.versions ?? 0}</td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${s.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                       {s.isPublished ? 'Published' : 'Draft'}

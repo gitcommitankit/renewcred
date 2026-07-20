@@ -1,4 +1,5 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import { AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
 
 export const createBaseQuery = (path = '') => {
   const rawBaseQuery = fetchBaseQuery({
@@ -39,7 +40,7 @@ export const createBaseQuery = (path = '') => {
           const newAccessToken = data?.data?.accessToken;
           if (newAccessToken && typeof window !== 'undefined') {
             localStorage.setItem('accessToken', newAccessToken);
-            document.cookie = `accessToken=${newAccessToken}; path=/; max-age=2592000; SameSite=Lax`;
+            document.cookie = `accessToken=${newAccessToken}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; SameSite=Lax`;
           }
           // Retry original query with updated headers
           result = await rawBaseQuery(args, api, extraOptions);

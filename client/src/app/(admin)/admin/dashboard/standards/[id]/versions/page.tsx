@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Plus, ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGetStandardByIdQuery } from '@/store/api/standardsApi';
-import { useDeleteVersionMutation, useGetVersionsByStandardSlugQuery } from '@/store/api/versionsApi';
+import { useDeleteVersionMutation } from '@/store/api/versionsApi';
 import { VersionSummary } from '@/types';
 import { Button, Spinner } from '@/components/ui/Button';
 import { VersionBadge } from '@/components/ui/Badge';
@@ -15,12 +15,14 @@ import { ConfirmDialog } from '@/components/ui/Modal';
 
 export default function VersionsListPage() {
   const params = useParams<{ id: string }>();
-  const { data: standardData } = useGetStandardByIdQuery(params.id);
+  const { data: standardData, isLoading: standardLoading } = useGetStandardByIdQuery(params.id);
   const standard = standardData?.data;
-  const { data: versionsData, isLoading } = useGetVersionsByStandardSlugQuery(standard?.slug ?? '', { skip: !standard?.slug });
   const [deleteVersion, { isLoading: isDeleting }] = useDeleteVersionMutation();
   const [deleteTarget, setDeleteTarget] = useState<VersionSummary | null>(null);
-  const versions = versionsData?.data ?? [];
+  
+  // standard.versions is populated by getStandardById and includes all versions (including drafts)
+  const versions = standard?.versions ?? [];
+  const isLoading = standardLoading;
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -58,15 +60,17 @@ export default function VersionsListPage() {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-warm-gray-200 bg-[#fafaf9]">
-                {['Label', 'Status', 'Certified At', 'Latest', ''].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">{h}</th>
-                ))}
+              <tr className="border-b border-warm-gray-200 bg-warm-gray-100">
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Version</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Certified At</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Latest</th>
+                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody>
-              {versions.map((v) => (
-                <tr key={v.id} className="border-b border-warm-gray-100 hover:bg-[#fafaf9] transition-colors">
+              {versions.map((v: VersionSummary) => (
+                <tr key={v.id} className="border-b border-warm-gray-100 hover:bg-warm-gray-100 transition-colors">
                   <td className="px-5 py-3.5 font-semibold text-charcoal-900">{v.versionLabel}</td>
                   <td className="px-5 py-3.5"><VersionBadge status={v.status} /></td>
                   <td className="px-5 py-3.5 text-warm-gray-500 text-xs">{v.certifiedAt ? new Date(v.certifiedAt).toLocaleDateString() : '—'}</td>

@@ -23,30 +23,7 @@ export const versionsApi = createApi({
       providesTags: (_result, _error, slug) => [{ type: 'Version', id: `LIST-${slug}` }],
     }),
 
-    getLatestVersion: builder.query<ApiResponse<Version>, string>({
-      query: (slug) => `/standards/${slug}/versions/latest`,
-      providesTags: (_result, _error, slug) => [{ type: 'Version', id: `LATEST-${slug}` }],
-    }),
 
-    getVersionBySlug: builder.query<
-      ApiResponse<Version>,
-      { standardSlug: string; versionSlug: string }
-    >({
-      query: ({ standardSlug, versionSlug }) =>
-        `/standards/${standardSlug}/versions/${versionSlug}`,
-      providesTags: (_result, _error, { versionSlug }) => [
-        { type: 'Version', id: versionSlug },
-      ],
-    }),
-
-    getSections: builder.query<ApiResponse<Section[]>, string>({
-      query: (versionId) => `/versions/${versionId}/sections`,
-      providesTags: (_result, _error, versionId) => [
-        { type: 'Section', id: `LIST-${versionId}` },
-      ],
-    }),
-
-    // ---- Admin ----
     getVersionById: builder.query<ApiResponse<Version>, string>({
       query: (id) => `/admin/versions/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Version', id }],
@@ -97,8 +74,9 @@ export const versionsApi = createApi({
         method: 'POST',
         body: data,
       }),
+      // Invalidate the Version so the sidebar re-fetches with the new section
       invalidatesTags: (_result, _error, { versionId }) => [
-        { type: 'Section', id: `LIST-${versionId}` },
+        { type: 'Version', id: versionId },
       ],
     }),
 
@@ -111,9 +89,11 @@ export const versionsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id, versionId }) => [
+      // Only update the individual section cache — do NOT invalidate the full
+      // version or the section list. Editing content does not change the sidebar
+      // tree structure, and we must not trigger a full refetch on every auto-save.
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'Section', id },
-        { type: 'Section', id: `LIST-${versionId}` },
       ],
     }),
 
@@ -122,8 +102,9 @@ export const versionsApi = createApi({
         url: `/admin/sections/${id}`,
         method: 'DELETE',
       }),
+      // Invalidate the full Version so the sidebar loses the deleted section
       invalidatesTags: (_result, _error, { versionId }) => [
-        { type: 'Section', id: `LIST-${versionId}` },
+        { type: 'Version', id: versionId },
       ],
     }),
 
@@ -136,18 +117,15 @@ export const versionsApi = createApi({
         method: 'PUT',
         body: { sections },
       }),
+      // Invalidate the full Version so the sidebar re-fetches with new order
       invalidatesTags: (_result, _error, { versionId }) => [
-        { type: 'Section', id: `LIST-${versionId}` },
+        { type: 'Version', id: versionId },
       ],
     }),
   }),
 });
 
 export const {
-  useGetVersionsByStandardSlugQuery,
-  useGetLatestVersionQuery,
-  useGetVersionBySlugQuery,
-  useGetSectionsQuery,
   useGetVersionByIdQuery,
   useCreateVersionMutation,
   useUpdateVersionMutation,

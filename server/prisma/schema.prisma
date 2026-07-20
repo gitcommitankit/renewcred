@@ -101,42 +101,4 @@ model Section {
 }
 
 
-// ─────────────────────────────────────────────────
-// Generic Pages (Buyers, Suppliers, Contact Us, etc.)
-// Managed via admin panel; public access by slug.
-// ─────────────────────────────────────────────────
 
-
-model Page {
-  id          String   @id @default(uuid())
-  title       String
-  slug        String   @unique
-  content     Json     @default("{}")
-  isPublished Boolean  @default(false) @map("is_published")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@map("pages")
-}
-
-
-// ─────────────────────────────────────────────────
-// Site Settings (Singleton row pattern)
-// Uses a fixed primary key 'singleton' to ensure only one record exists.
-// ─────────────────────────────────────────────────
-
-
-model SiteSettings {
-  id                String   @id @default("singleton")
-  siteName          String   @default("RenewCred") @map("site_name")
-  tagline           String?
-  address           String?
-  email             String?
-  phone             String?
-  socialLinks       Json?    @map("social_links")
-  footerText        String?  @map("footer_text")
-  newsletterEnabled Boolean  @default(true) @map("newsletter_enabled")
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
-
-  @@map("site_settings")
-}

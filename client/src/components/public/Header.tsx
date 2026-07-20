@@ -58,12 +58,11 @@ export default function Header() {
                 <Link
                   key={href}
                   href={href}
-                  className={[
-                    'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? 'text-brand-red font-semibold'
-                      : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-warm-gray-100',
-                  ].join(' ')}
+                      : 'text-charcoal-700 hover:text-charcoal-900 hover:bg-warm-gray-100'
+                  }`}
                 >
                   {label}
                 </Link>
