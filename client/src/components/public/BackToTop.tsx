@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
+import { ChevronUp } from 'lucide-react';
+
 export default function BackToTop() {
   const [visible, setVisible] = useState(false);
 
@@ -19,10 +21,9 @@ export default function BackToTop() {
     <button
       onClick={scrollTop}
       aria-label="Back to top"
-      className="fixed bottom-8 right-0 z-40 flex items-center gap-2 bg-charcoal-900 text-white text-xs font-semibold tracking-widest pr-4 pl-3 py-2.5 rounded-l-full shadow-lg hover:bg-brand-red transition-colors duration-200"
-      style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}
+      className="fixed bottom-8 right-8 z-40 flex items-center justify-center w-12 h-12 bg-charcoal-900 text-white rounded-full shadow-lg hover:bg-brand-red transition-all duration-300 hover:-translate-y-1"
     >
-      BACK TO TOP →
+      <ChevronUp size={24} />
     </button>
   );
 }

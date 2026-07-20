@@ -51,7 +51,7 @@ export default function DashboardPage() {
       <div className="mb-6">
         <h3 className="text-sm font-semibold text-charcoal-600 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          <Link href="/admin/dashboard/standards/new" className="flex items-center gap-2 px-4 py-2 bg-brand-red text-white text-sm font-medium rounded-lg hover:bg-brand-red-dark transition-colors">
+          <Link href="/admin/dashboard/standards/new" className="flex items-center gap-2 px-4 py-2 bg-brand-red text-white! text-sm font-medium rounded-lg hover:bg-brand-red-dark transition-colors">
             <Plus size={15} /> New Standard
           </Link>
         </div>

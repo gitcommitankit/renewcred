@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { Leaf, Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import NewsletterForm from './NewsletterForm';
+import Logo from '../ui/Logo';
 
 const NAV_LINKS = [
   { href: '/buyers', label: 'Buyers' },
@@ -26,13 +27,8 @@ export default function Footer() {
 
           {/* Column 1: Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="flex items-center justify-center w-8 h-8 bg-brand-red rounded-lg">
-                <Leaf size={18} className="text-white" />
-              </div>
-              <span className="text-lg font-bold tracking-tight">
-                Renew<span className="text-brand-red">Cred</span>
-              </span>
+            <Link href="/" className="inline-block mb-4">
+              <Logo className="h-8 w-auto text-white" />
             </Link>
             <p className="text-sm text-warm-gray-400 leading-relaxed mb-5">
               Setting the global standard for climate credibility. Rigorous, transparent, and science-based certification for climate action.

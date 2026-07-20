@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Leaf } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import Logo from '../ui/Logo';
 
 const NAV_LINKS = [
   { href: '/buyers', label: 'Buyers' },
@@ -41,13 +42,8 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center justify-center w-8 h-8 bg-brand-red rounded-lg">
-              <Leaf size={18} className="text-white" />
-            </div>
-            <span className="text-lg font-bold text-charcoal-900 tracking-tight">
-              Renew<span className="text-brand-red">Cred</span>
-            </span>
+          <Link href="/" className="shrink-0">
+            <Logo className="h-8 w-auto text-charcoal-900" />
           </Link>
 
           {/* Desktop nav */}
@@ -74,7 +70,7 @@ export default function Header() {
           <div className="flex items-center gap-3">
             <Link
               href="/standards"
-              className="hidden sm:inline-flex items-center px-4 py-2 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors"
+              className="hidden sm:inline-flex items-center px-4 py-2 bg-brand-red text-white! text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors"
             >
               Registry
             </Link>

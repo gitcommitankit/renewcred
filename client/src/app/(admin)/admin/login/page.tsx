@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Leaf, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import Logo from '@/components/ui/Logo';
 import toast from 'react-hot-toast';
 import { Suspense } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,13 +50,10 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-warm-gray-100 px-4">
-      <div className="w-full">
+      <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-12 h-12 bg-brand-red rounded-xl mb-4">
-            <Leaf size={24} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-charcoal-900">RenewCred CMS</h1>
+          <Logo className="h-12 w-auto text-charcoal-900 mb-4" />
           <p className="text-sm text-warm-gray-500 mt-1">Sign in to manage content</p>
         </div>
 

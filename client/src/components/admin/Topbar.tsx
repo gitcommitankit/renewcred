@@ -23,15 +23,6 @@ export default function Topbar() {
 
       {/* Right: admin info + logout */}
       <div className="flex items-center gap-3">
-        <button
-          className="relative p-2 rounded-lg text-warm-gray-500 hover:text-charcoal-900 hover:bg-warm-gray-100 transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell size={18} />
-        </button>
-
-        <div className="h-5 w-px bg-warm-gray-200" />
-
         <div className="flex items-center gap-2.5">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-brand-red text-white text-xs font-bold shrink-0">
             {admin?.name?.charAt(0).toUpperCase() ?? 'A'}
@@ -41,6 +32,8 @@ export default function Topbar() {
             <p className="text-xs text-warm-gray-500 leading-tight">{admin?.email}</p>
           </div>
         </div>
+
+        <div className="h-5 w-px bg-warm-gray-200" />
 
         <button
           onClick={logout}

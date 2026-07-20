@@ -9,8 +9,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Leaf,
 } from 'lucide-react';
+import Logo from '@/components/ui/Logo';
 import { useState } from 'react';
 
 const NAV_ITEMS = [
@@ -33,16 +33,8 @@ export default function Sidebar() {
         collapsed ? 'w-16' : 'w-60',
       ].join(' ')}
     >
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-charcoal-8min-h-16.25px]">
-        <div className="flex items-center justify-center w-8 h-8 bg-brand-red rounded-lg shrink-0">
-          <Leaf size={16} className="text-white" />
-        </div>
-        {!collapsed && (
-          <span className="font-bold text-sm tracking-wide whitespace-nowrap">
-            RenewCred CMS
-          </span>
-        )}
+      <div className="flex items-center px-4 py-5 border-b border-charcoal-800 min-h-[72.5px] overflow-hidden">
+        <Logo className={`h-6 w-auto text-white shrink-0 transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`} />
       </div>
 
       {/* Nav */}
