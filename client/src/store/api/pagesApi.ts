@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createBaseQuery } from './baseQuery';
 import type {
   ApiResponse,
   Page,
@@ -9,17 +10,7 @@ import type {
 
 export const pagesApi = createApi({
   reducerPath: 'pagesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
-    prepareHeaders: (headers) => {
-      const token =
-        typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createBaseQuery(),
   tagTypes: ['Page', 'Settings'],
   endpoints: (builder) => ({
     // ---- Public ----

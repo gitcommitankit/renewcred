@@ -16,10 +16,18 @@ export function useAuth() {
   const login = useCallback(
     async (credentials: LoginRequest, callbackUrl?: string | null) => {
       const result = await loginMutation(credentials).unwrap();
+      const { admin, accessToken } = result.data;
+      
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('admin', JSON.stringify(admin));
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      }
+
       dispatch(
         setCredentials({
-          admin: result.data.admin,
-          accessToken: result.data.accessToken,
+          admin,
+          accessToken,
         })
       );
       router.push(callbackUrl || '/admin/dashboard');
@@ -34,6 +42,11 @@ export function useAuth() {
     } catch {
       // Ignore errors on logout — always clear local state
     } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('admin');
+        document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
+      }
       dispatch(clearCredentials());
       router.push('/admin/login');
     }

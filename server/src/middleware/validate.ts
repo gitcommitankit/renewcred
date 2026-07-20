@@ -35,17 +35,25 @@ export const validateUuidParams = (paramNames: string[]) => {
     
     for (const paramName of paramNames) {
       const val = req.params[paramName];
-      if (val) {
-        const valStr = Array.isArray(val) ? val[0] : val;
-        if (!uuidRegex.test(valStr)) {
-          res.status(400).json({
-            success: false,
-            statusCode: 400,
-            message: 'Validation failed',
-            errors: [{ field: paramName, message: 'Must be a valid UUID' }],
-          });
-          return;
-        }
+      if (!val) {
+        res.status(400).json({
+          success: false,
+          statusCode: 400,
+          message: 'Validation failed',
+          errors: [{ field: paramName, message: 'Missing required UUID parameter' }],
+        });
+        return;
+      }
+      
+      const valStr = Array.isArray(val) ? val[0] : val;
+      if (!uuidRegex.test(valStr)) {
+        res.status(400).json({
+          success: false,
+          statusCode: 400,
+          message: 'Validation failed',
+          errors: [{ field: paramName, message: 'Must be a valid UUID' }],
+        });
+        return;
       }
     }
     

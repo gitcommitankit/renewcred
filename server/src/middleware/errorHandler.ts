@@ -1,6 +1,7 @@
 import { ApiError } from '@/utils/ApiError';
 import { logger } from '@/utils/logger';
 import type { Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 
 export const errorHandler = (
   err: Error,
@@ -18,11 +19,9 @@ export const errorHandler = (
   }
 
   // Prisma known errors
-  if (err.constructor.name === 'PrismaClientKnownRequestError') {
-    const prismaError = err as unknown as { code: string; meta?: { target?: string[] } };
-
-    if (prismaError.code === 'P2002') {
-      const target = prismaError.meta?.target?.join(', ') || 'field';
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P2002') {
+      const target = (err.meta?.target as string[])?.join(', ') || 'field';
       res.status(409).json({
         success: false,
         statusCode: 409,
@@ -31,7 +30,7 @@ export const errorHandler = (
       return;
     }
 
-    if (prismaError.code === 'P2025') {
+    if (err.code === 'P2025') {
       res.status(404).json({
         success: false,
         statusCode: 404,

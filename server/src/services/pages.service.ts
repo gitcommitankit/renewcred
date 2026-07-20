@@ -1,6 +1,7 @@
 import prisma from '@/config/database';
 import { ApiError } from '@/utils/ApiError';
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { UpdatePageInput, UpdateSettingsInput } from '@/validators/pages.validator';
 
 export class PagesService {
   /**
@@ -43,9 +44,15 @@ export class PagesService {
   /**
    * Update a page (admin)
    */
-  static async update(id: string, data: { title?: string; content?: Prisma.InputJsonValue; isPublished?: boolean }) {
+  static async update(id: string, data: UpdatePageInput) {
     await this.getById(id);
-    return prisma.page.update({ where: { id }, data });
+    return prisma.page.update({ 
+      where: { id }, 
+      data: {
+        ...data,
+        content: data.content as Prisma.InputJsonValue | undefined,
+      }
+    });
   }
 
   /**
@@ -64,20 +71,16 @@ export class PagesService {
   /**
    * Update site settings
    */
-  static async updateSettings(data: {
-    siteName?: string;
-    tagline?: string;
-    address?: string;
-    email?: string;
-    phone?: string;
-    socialLinks?: Record<string, string>;
-    footerText?: string;
-    newsletterEnabled?: boolean;
-  }) {
+  static async updateSettings(data: UpdateSettingsInput) {
+    const prismaData = {
+      ...data,
+      socialLinks: data.socialLinks === null ? Prisma.DbNull : data.socialLinks as Prisma.InputJsonValue | undefined,
+    };
+
     return prisma.siteSettings.upsert({
       where: { id: 'singleton' },
-      create: { id: 'singleton', ...data },
-      update: data,
+      create: { id: 'singleton', ...prismaData },
+      update: prismaData,
     });
   }
 }

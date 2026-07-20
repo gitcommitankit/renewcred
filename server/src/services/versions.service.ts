@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from "@/config/database";
 import { ApiError } from "@/utils/ApiError";
 import { CreateSectionInput, CreateVersionInput, ReorderSectionsInput, UpdateSectionInput, UpdateVersionInput } from "@/validators/versions.validator";
@@ -220,7 +221,7 @@ export class VersionsService {
     return prisma.section.create({
       data: {
         ...data,
-        content: data.content ? (data.content as any) : undefined,
+        content: data.content as Prisma.InputJsonValue | undefined,
         versionId,
       },
     });
@@ -239,7 +240,7 @@ export class VersionsService {
       where: { id },
       data: {
         ...data,
-        content: data.content ? (data.content as any) : undefined,
+        content: data.content as Prisma.InputJsonValue | undefined,
       },
     });
   }

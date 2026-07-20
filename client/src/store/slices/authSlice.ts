@@ -43,13 +43,6 @@ const authSlice = createSlice({
       state.accessToken = accessToken;
       state.isAuthenticated = true;
       state.isLoading = false;
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('admin', JSON.stringify(admin));
-        // Write cookie for Next.js middleware (Edge cannot read localStorage)
-        document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      }
     },
 
     updateTokens(
@@ -58,10 +51,6 @@ const authSlice = createSlice({
     ) {
       const { accessToken } = action.payload;
       state.accessToken = accessToken;
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', accessToken);
-      }
     },
 
     clearCredentials(state) {
@@ -69,13 +58,6 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.isAuthenticated = false;
       state.isLoading = false;
-
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('admin');
-        // Clear the cookie too
-        document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
-      }
     },
 
     setLoading(state, action: PayloadAction<boolean>) {

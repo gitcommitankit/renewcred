@@ -1,19 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import type { Standard, ApiResponse, CreateStandardInput, UpdateStandardInput } from '@/types';
+import { createBaseQuery } from './baseQuery';
 
 export const standardsApi = createApi({
   reducerPath: 'standardsApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1',
-    prepareHeaders: (headers) => {
-      const token =
-        typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: createBaseQuery(),
   tagTypes: ['Standard'],
   endpoints: (builder) => ({
     // ---- Public ----

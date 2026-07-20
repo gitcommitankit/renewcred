@@ -8,7 +8,7 @@ import { Router } from 'express';
 const router: Router = Router();
 
 router.post('/auth/login', authLimiter, validate(loginSchema), AuthController.login);
-router.post('/auth/refresh', AuthController.refresh);
+router.post('/auth/refresh', authLimiter, AuthController.refresh);
 router.post('/auth/logout', authenticate, AuthController.logout);
 router.get('/auth/me', authenticate, AuthController.me);
 
