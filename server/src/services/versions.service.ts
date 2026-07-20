@@ -1,7 +1,7 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from "@/config/database";
-import { ApiError } from "@/utils/ApiError";
-import { CreateSectionInput, CreateVersionInput, ReorderSectionsInput, UpdateSectionInput, UpdateVersionInput } from "@/validators/versions.validator";
+
+import { prisma } from "../config/database";
+import { ApiError } from "../utils/ApiError";
+import { CreateSectionInput, CreateVersionInput, ReorderSectionsInput, UpdateSectionInput, UpdateVersionInput } from "../validators/versions.validator";
 
 
 export class VersionsService {
@@ -67,7 +67,7 @@ export class VersionsService {
    * Create a new version (admin)
    */
   static async create(standardId: string, data: CreateVersionInput) {
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: any) => {
       // If this version is marked as latest, unmark all others
       if (data.isLatest) {
         await tx.version.updateMany({
@@ -98,7 +98,7 @@ export class VersionsService {
       throw ApiError.notFound('Version not found');
     }
 
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: any) => {
       // If marking as latest, unmark others
       if (data.isLatest) {
         await tx.version.updateMany({
@@ -168,7 +168,7 @@ export class VersionsService {
     return prisma.section.create({
       data: {
         ...data,
-        content: data.content as Prisma.InputJsonValue | undefined,
+        content: data.content as any | undefined,
         versionId,
       },
     });
@@ -182,7 +182,7 @@ export class VersionsService {
       where: { id },
       data: {
         ...data,
-        content: data.content as Prisma.InputJsonValue | undefined,
+        content: data.content as any | undefined,
       },
     });
   }

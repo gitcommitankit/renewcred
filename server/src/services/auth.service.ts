@@ -1,7 +1,7 @@
-import prisma from '@/config/database';
-import { env } from '@/config/env';
-import { AuthPayload } from '@/middleware/auth';
-import { ApiError } from '@/utils/ApiError';
+import prisma from '../config/database';
+import { env } from '../config/env';
+import { AuthPayload } from '../middleware/auth';
+import { ApiError } from '../utils/ApiError';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 

@@ -1,5 +1,5 @@
-import { VersionsService } from '@/services/versions.service';
-import { ApiResponse } from '@/utils/ApiResponse';
+import { VersionsService } from '../services/versions.service';
+import { ApiResponse } from '../utils/ApiResponse';
 import type { Request, Response, NextFunction } from 'express';
 
 export class VersionsController {

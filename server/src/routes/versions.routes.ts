@@ -5,10 +5,10 @@ import {
   createSectionSchema,
   updateSectionSchema,
   reorderSectionsSchema,
-} from '@/validators/versions.validator';
-import { VersionsController } from '@/controllers/versions.controller';
-import { validate, validateUuidParams } from '@/middleware/validate';
-import { authenticate } from '@/middleware/auth';
+} from '../validators/versions.validator';
+import { VersionsController } from '../controllers/versions.controller';
+import { validate, validateUuidParams } from '../middleware/validate';
+import { authenticate } from '../middleware/auth';
 
 const router: Router = Router();
 

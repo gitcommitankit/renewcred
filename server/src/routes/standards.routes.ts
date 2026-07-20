@@ -1,7 +1,7 @@
-import { StandardsController } from '@/controllers/standards.controller';
-import { authenticate } from '@/middleware/auth';
-import { validate, validateUuidParams } from '@/middleware/validate';
-import { createStandardSchema, updateStandardSchema } from '@/validators/standards.validator';
+import { StandardsController } from '../controllers/standards.controller';
+import { authenticate } from '../middleware/auth';
+import { validate, validateUuidParams } from '../middleware/validate';
+import { createStandardSchema, updateStandardSchema } from '../validators/standards.validator';
 import { Router } from 'express';
 
 const router: Router = Router();

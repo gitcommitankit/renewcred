@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 
-import { AuthService } from '@/services/auth.service';
-import { ApiResponse } from '@/utils/ApiResponse';
-import { env } from '@/config/env';
-import { refreshTokenCookieOptions } from '@/config/cookies';
+import { AuthService } from '../services/auth.service';
+import { ApiResponse } from '../utils/ApiResponse';
+import { env } from '../config/env';
+import { refreshTokenCookieOptions } from '../config/cookies';
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {

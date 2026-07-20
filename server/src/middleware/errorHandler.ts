@@ -1,5 +1,5 @@
-import { ApiError } from '@/utils/ApiError';
-import { logger } from '@/utils/logger';
+import { ApiError } from '../utils/ApiError';
+import { logger } from '../utils/logger';
 import type { Request, Response, NextFunction } from 'express';
 
 export const errorHandler = (

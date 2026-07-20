@@ -1,5 +1,5 @@
-import { StandardsService } from '@/services/standards.service';
-import { ApiResponse } from '@/utils/ApiResponse';
+import { StandardsService } from '../services/standards.service';
+import { ApiResponse } from '../utils/ApiResponse';
 import type { Request, Response, NextFunction } from 'express';
 
 export class StandardsController {
