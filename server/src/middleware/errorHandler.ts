@@ -1,7 +1,6 @@
 import { ApiError } from '@/utils/ApiError';
 import { logger } from '@/utils/logger';
 import type { Request, Response, NextFunction } from 'express';
-import { Prisma } from '@prisma/client';
 
 export const errorHandler = (
   err: Error,
@@ -19,9 +18,10 @@ export const errorHandler = (
   }
 
   // Prisma known errors
-  if (err instanceof Prisma.PrismaClientKnownRequestError) {
-    if (err.code === 'P2002') {
-      const target = (err.meta?.target as string[])?.join(', ') || 'field';
+  const prismaError = err as any;
+  if (prismaError.name === 'PrismaClientKnownRequestError') {
+    if (prismaError.code === 'P2002') {
+      const target = (prismaError.meta?.target as string[])?.join(', ') || 'field';
       res.status(409).json({
         success: false,
         statusCode: 409,
@@ -30,11 +30,11 @@ export const errorHandler = (
       return;
     }
 
-    if (err.code === 'P2025' || err.code === 'P2003') {
+    if (prismaError.code === 'P2025' || prismaError.code === 'P2003') {
       res.status(404).json({
         success: false,
         statusCode: 404,
-        message: err.code === 'P2003' ? 'Related record not found' : 'Record not found',
+        message: prismaError.code === 'P2003' ? 'Related record not found' : 'Record not found',
       });
       return;
     }
