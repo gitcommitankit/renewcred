@@ -1,136 +1,250 @@
 # RenewCred CMS
 
-A production-ready Content Management System enabling authenticated administrators to manage all content displayed on the public website dynamically. It features a full administrative panel with rich content editing, drag-and-drop section hierarchy management, and a multi-version workflow for standards.
+A production-ready Content Management System for authoring and publishing climate certification standards. Authenticated administrators manage all content through a rich admin panel, while the public-facing website serves it with ISR-cached server-rendered pages.
 
 ---
 
 ## Features
 
-- **Admin Authentication** — Secure login/logout with JWT access tokens and HttpOnly cookie refresh tokens
-- **Standards Management** — Full CRUD for climate standards with publish/draft toggle and sort ordering
-- **Version Lifecycle** — `DRAFT → PUBLIC_CONSULTATION → CERTIFIED` workflow with `isLatest` flag per standard
-- **Rich Content Editor** — Tiptap-powered editor supporting long-form text, nested lists, tables, and LaTeX mathematical equations (KaTeX)
-- **Section Tree with Drag & Drop** — Hierarchical sections with auto-numbering, real-time drag-and-drop reorder, and auto-save
-- **Public Website** — ISR-cached server-rendered pages consuming content from the API
-- **Docker Ready** — Multi-stage production Dockerfiles with non-root users and a full docker-compose orchestration
+- **Admin Authentication** — JWT access tokens + HttpOnly cookie refresh tokens with silent refresh
+- **Standards Management** — CRUD for climate standards with publish/draft toggle and sort ordering
+- **Version Lifecycle** — `DRAFT → PUBLIC_CONSULTATION → CERTIFIED` workflow with `isLatest` flag
+- **Rich Content Editor** — Tiptap editor with nested lists, tables, code blocks, and LaTeX math (KaTeX)
+- **Hierarchical Sections** — Auto-numbered section tree with drag-and-drop reorder and auto-save
+- **Public Website** — ISR-cached server-rendered pages (60s revalidation)
+- **Docker Ready** — Multi-stage production Dockerfiles with non-root users and full compose orchestration
 
 ---
 
-## Architecture Overview
+## Architecture
 
-This project is a **monorepo** with two independently deployable applications:
+Pnpm monorepo with two independently deployable apps:
 
 ```
 renewcred/
-├── client/     # Next.js 16 App Router frontend
-└── server/     # Express.js REST API backend
+├── client/   # Next.js 16 (App Router)
+└── server/   # Express.js REST API
 ```
 
 ### Backend (`/server`)
-- **Express.js + TypeScript** — Layered `Routes → Controllers → Services` architecture. Controllers are thin HTTP adapters; all business logic lives in Services.
-- **Prisma ORM + PostgreSQL** — Type-safe DB queries. Schema uses `uuid()` PKs, snake_case column names, cascading deletes, and composite unique constraints.
-- **Zod Validation** — All mutation endpoints are schema-validated at the middleware layer before reaching controllers.
-- **Security** — `helmet`, CORS, `express-rate-limit` on auth endpoints, bcryptjs for password hashing, structured Pino logging.
-- **Error Handling** — Global `errorHandler` translates Prisma error codes (P2002, P2025) and `ApiError` instances into a uniform JSON envelope.
+
+| Layer | Detail |
+|---|---|
+| Framework | Express.js + TypeScript |
+| ORM | Prisma + PostgreSQL |
+| Validation | Zod (schema-validated at middleware layer) |
+| Auth | JWT (jsonwebtoken) + bcryptjs |
+| Logging | Pino |
+| Security | helmet, CORS, express-rate-limit |
+
+Architecture: `Routes → Controllers → Services`. Controllers are thin HTTP adapters; all business logic lives in Service classes.
 
 ### Frontend (`/client`)
-- **Next.js App Router** — `(admin)` and `(public)` route groups provide layout isolation. Public pages use Server Components with 60s ISR for performance; admin pages use Client Components with RTK Query.
-- **Redux Toolkit (RTK Query)** — All admin API interactions use RTK Query endpoints with tag-based cache invalidation. `authSlice` manages authentication state. `uiSlice` manages sidebar layout state.
-- **Tiptap Editor** — Headless ProseMirror-based editor. Content is stored as structured JSON (not raw HTML), making it renderer-agnostic and future-proof.
-- **Custom TiptapRenderer** — A pure React renderer (`TiptapRenderer.tsx`) that converts the stored JSON to JSX, supporting all node/mark types including KaTeX math blocks.
-- **Authentication** — Next.js Edge Middleware protects `/admin/dashboard/*` routes. The Axios client (`lib/api.ts`) handles concurrent 401 responses with a request queue and silent token refresh, while RTK Query handles all standard data fetching.
 
----
-
-## Key Architectural Decisions
-
-| Decision | Rationale |
+| Layer | Detail |
 |---|---|
-| **HttpOnly cookie for refresh token** | Prevents XSS from reading long-lived tokens. Access token stays in-memory (localStorage fallback) for Authorization headers. |
-| **JSON content field for sections** | Schema-agnostic. Rich content evolves without DB migrations. Supports any future block types. |
-| **`isLatest` flag + `$transaction`** | Allows a standard to have exactly one "latest" version atomically, without race conditions. |
-| **Section ownership validation in reorder** | Prevents privilege escalation where a user reorders sections from another version. |
-| **Shallow REST nesting** | `/versions/:id/sections` is preferred over deeply nested URLs for simplicity and cacheability. |
-| **ISR on public pages** | `revalidate: 60` gives near-real-time updates without sacrificing Next.js static generation performance. |
-| **Drag & Drop with `@dnd-kit`** | Accessible, pointer-based DnD with keyboard fallback, preferred over `react-beautiful-dnd` (deprecated). |
+| Framework | Next.js 16, React 19 |
+| State/Data | Redux Toolkit + RTK Query |
+| Styling | Tailwind CSS v4 (CSS-variable theme) |
+| Editor | Tiptap (content stored as structured JSON) |
+| DnD | @dnd-kit |
+
+Route groups provide layout isolation:
+- `(admin)` — Client Components, RTK Query, protected by Next.js Middleware
+- `(public)` — Server Components, ISR-cached
 
 ---
 
-## Technology Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 16, React 19, Redux Toolkit (RTK Query), Tailwind CSS |
-| Admin Editor | Tiptap, KaTeX, `@dnd-kit` |
-| Backend | Express.js, TypeScript, Prisma ORM |
+| Frontend | Next.js 16, React 19, RTK Query, Tailwind CSS v4 |
+| Editor | Tiptap, KaTeX, @dnd-kit |
+| Backend | Express.js 5, TypeScript, Prisma ORM |
 | Database | PostgreSQL |
 | Validation | Zod |
-| Auth | JWT (jsonwebtoken), bcryptjs |
+| Auth | JWT, bcryptjs |
 | Logging | Pino |
-| Infrastructure | Docker, Docker Compose |
+| Infrastructure | Docker, Docker Compose, pnpm workspaces |
 
 ---
 
-## Setup Instructions
+## Local Development
 
 ### Prerequisites
+
 - Node.js v22+
-- `pnpm` (`corepack enable pnpm`)
-- Docker & Docker Compose (recommended)
+- pnpm v10+ (`corepack enable`)
+- Docker & Docker Compose (recommended) or a local PostgreSQL instance
 
 ### Option 1: Docker (Recommended)
 
 ```bash
-# 1. Clone and copy env file
+# 1. Copy and fill the env file
 cp .env.example .env
+# Set JWT_ACCESS_SECRET and JWT_REFRESH_SECRET to strong random strings
 
-# 2. Start everything (Postgres + Server + Client)
-docker-compose up --build -d
+# 2. Build and start all services (Postgres + Server + Client)
+docker compose up --build -d
 
-# 3. Seed initial data
-docker exec -it renewcred-server pnpm prisma db seed
+# 3. Run migrations and seed initial data
+docker compose exec server npx prisma migrate deploy
+docker compose exec server node -e "require('./dist/index.js')" # ensure server is up
+docker compose exec server npx prisma db seed
 ```
 
-- Client → http://localhost:3000
-- Server API → http://localhost:4000/api/v1
+| Service | URL |
+|---|---|
+| Public site | http://localhost:3000 |
+| Admin panel | http://localhost:3000/admin/login |
+| API | http://localhost:4000/api/v1 |
+| API health | http://localhost:4000/health |
 
-### Option 2: Manual Local Setup
+### Option 2: Manual Setup
 
 ```bash
-# 1. Copy env file
+# 1. Install all workspace dependencies from root
 cp .env.example .env
-# Edit DATABASE_URL to point to your local Postgres instance
+pnpm install
 
 # 2. Start the backend
 cd server
-pnpm install
-pnpm prisma db push       # Sync schema
-pnpm prisma db seed       # Seed data
-pnpm dev                  # http://localhost:4000
+pnpm db:migrate    # Run migrations
+pnpm db:seed       # Seed sample data
+pnpm dev           # http://localhost:4000
 
 # 3. Start the frontend (new terminal)
 cd client
-pnpm install
-pnpm dev                  # http://localhost:3000
+pnpm dev           # http://localhost:3000
+```
+
+### Root-level Scripts
+
+| Command | Action |
+|---|---|
+| `pnpm dev` | Start client + server in parallel |
+| `pnpm build` | Build server then client |
+| `pnpm db:migrate` | Run Prisma migrations (dev) |
+| `pnpm db:migrate:prod` | Deploy migrations (production) |
+| `pnpm db:generate` | Regenerate Prisma client |
+| `pnpm db:seed` | Seed the database |
+| `pnpm db:studio` | Open Prisma Studio |
+| `pnpm db:reset` | Reset and re-migrate |
+
+---
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in all values:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
+
+# Server
+SERVER_PORT=4000
+NODE_ENV=development
+
+# JWT (use long random strings in production)
+JWT_ACCESS_SECRET=your-access-secret
+JWT_REFRESH_SECRET=your-refresh-secret
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# CORS (comma-separated for multiple origins)
+CORS_ORIGIN=http://localhost:3000
+
+# Client (Next.js public)
+NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+
+# Admin seed credentials
+SEED_ADMIN_EMAIL=admin@renewcred.com
+SEED_ADMIN_PASSWORD=Admin@123
+SEED_ADMIN_NAME=Admin User
+```
+
+### For Neon DB (serverless Postgres)
+
+Neon requires two connection strings — a pooled URL for the running app and a direct URL for migrations:
+
+```env
+DATABASE_URL=postgresql://user:password@ep-xxx.pooler.neon.tech/dbname?sslmode=require
+DIRECT_URL=postgresql://user:password@ep-xxx.neon.tech/dbname?sslmode=require
+```
+
+Update `server/prisma/schema.prisma`:
+
+```prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
 ```
 
 ---
 
-## Evaluation Credentials
+## Deployment
 
-| Field | Value |
+### Client → Vercel
+
+Set the following environment variable in your Vercel project settings:
+
+| Variable | Value |
 |---|---|
-| Admin Login URL | `http://localhost:3000/admin/login` |
-| Email | `admin@renewcred.com` |
-| Password | `Admin@123` |
+| `NEXT_PUBLIC_API_URL` | `https://your-backend-url.com/api/v1` |
 
-The seed script also creates sample standards (Electric Vehicles, Biochar, Renewable Energy) with versions and rich content sections ready to explore.
+### Server → Render / Railway / Fly.io
+
+Set all server-side environment variables in your hosting platform's dashboard. Ensure `CORS_ORIGIN` includes your Vercel deployment URL:
+
+```env
+CORS_ORIGIN=http://localhost:3000,https://your-app.vercel.app
+NODE_ENV=production
+DATABASE_URL=<neon or other postgres url>
+JWT_ACCESS_SECRET=<strong secret>
+JWT_REFRESH_SECRET=<strong secret>
+```
+
+### Seeding a Production / Neon Database
+
+Once your server backend has deployed and the environment variables (especially `DATABASE_URL` and `DIRECT_URL`) are configured:
+
+```bash
+# From your local machine, pointing at the production DATABASE URL:
+cd server
+DATABASE_URL="<your-neon-direct-url>" pnpm db:seed
+```
+
+Or if your hosting platform supports one-off commands (e.g. Render Shell, Railway CLI, Fly SSH):
+
+```bash
+# On the deployed server container
+npx prisma db seed
+```
 
 ---
 
-## Assumptions & Scope
+## Admin Credentials (Seed)
 
-- **Generic pages** (`/buyers`, `/suppliers`, `/science`, etc.) are scaffolded with placeholder content. They demonstrate the `Page` data model and admin editing capability but are not the core deliverable — the Standards CMS is.
-- **Image uploads** are out of scope. Images can be linked externally in the Tiptap editor. Asset storage (e.g., S3) would be the natural next step.
-- **Single admin role** — RBAC is not implemented. The system assumes one admin user type. The seed creates a single admin; additional admins can be created directly in the database.
-- **Newsletter** — The newsletter form on the public site is UI-only (no mailing list integration). It demonstrates the SiteSettings model.
+| Field | Value |
+|---|---|
+| Login URL | `/admin/login` |
+| Email | `admin@renewcred.com` |
+| Password | `Admin@123` |
+
+The seed script creates sample standards (Electric Vehicles, Biochar, Renewable Energy) with versions and rich content sections.
+
+---
+
+## Key Decisions
+
+| Decision | Rationale |
+|---|---|
+| HttpOnly cookie for refresh token | Prevents XSS from reading long-lived tokens |
+| JSON content field for sections | Schema-agnostic — rich content evolves without DB migrations |
+| `isLatest` flag + `$transaction` | Ensures exactly one latest version per standard atomically |
+| ISR on public pages | Near-real-time updates without sacrificing static generation performance |
+| `@dnd-kit` for drag-and-drop | Accessible, pointer-based DnD with keyboard fallback |
+| Tiptap JSON storage | Renderer-agnostic — same content can be rendered in web, email, or PDF |
