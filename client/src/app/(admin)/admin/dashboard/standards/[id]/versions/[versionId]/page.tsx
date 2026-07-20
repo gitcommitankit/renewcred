@@ -167,7 +167,7 @@ export default function VersionEditorPage() {
       setEditorContent(allSections[0].content);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSections.length > 0]);
+  }, [!!allSections.length]);
 
   const handleSelectSection = (section: Section) => {
     setActiveSection(section);
@@ -188,8 +188,8 @@ export default function VersionEditorPage() {
   }, [updateSection, params.versionId]);
 
   useEffect(() => {
-    if (debouncedContent && debouncedTitle && activeSection) {
-      doSave(debouncedContent, debouncedTitle, activeSection.id);
+    if (debouncedContent && debouncedTitle?.trim() && activeSection) {
+      doSave(debouncedContent, debouncedTitle.trim(), activeSection.id);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedContent, debouncedTitle]);
@@ -316,8 +316,7 @@ export default function VersionEditorPage() {
   }
 
   return (
-    <div className="flex flex-col -m-6 h-[calc(100vh-65px)]">
-
+    <div className="flex flex-col -m-6 h-[calc(100vh-65px)] md:h-[calc(100vh-65px)]">
       {/* Top sub-bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-warm-gray-200 shrink-0">
         <div className="flex items-center gap-3">
@@ -346,10 +345,10 @@ export default function VersionEditorPage() {
       </div>
 
       {/* Split content area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
 
         {/* Left: Section Tree */}
-        <div className="w-64 flex flex-col bg-white border-r border-warm-gray-200 overflow-y-auto shrink-0">
+        <div className="w-full md:w-64 flex flex-col bg-white border-b md:border-b-0 md:border-r border-warm-gray-200 overflow-y-auto shrink-0 md:max-h-full max-h-[40vh]">
           <div className="flex items-center justify-between px-3 py-3 border-b border-warm-gray-200">
             <span className="text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Sections</span>
             <button onClick={() => setShowNewSection((v) => !v)} className="p-1 text-warm-gray-500 hover:text-brand-red transition-colors rounded" title="Add section">

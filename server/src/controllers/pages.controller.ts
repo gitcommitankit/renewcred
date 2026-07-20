@@ -1,6 +1,6 @@
+import { PagesService } from '@/services/pages.service';
+import { ApiResponse } from '@/utils/ApiResponse';
 import type { Request, Response, NextFunction } from 'express';
-import { PagesService } from '../services/pages.service.js';
-import { ApiResponse } from '../utils/ApiResponse.js';
 
 export class PagesController {
   // ---- Public ----

@@ -1,3 +1,4 @@
+import { VersionStatus } from '@/types';
 import React from 'react';
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'outline';
@@ -34,8 +35,6 @@ export function Badge({ variant = 'default', children, className = '' }: BadgePr
 }
 
 // ---- Version status badge helper ----
-import type { VersionStatus } from '../../types';
-
 const statusMap: Record<VersionStatus, { label: string; variant: BadgeVariant }> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   PUBLIC_CONSULTATION: { label: 'Public Consultation', variant: 'warning' },

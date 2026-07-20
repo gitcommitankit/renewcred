@@ -2,7 +2,7 @@
 
 import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
-import { store } from '../store/store';
+import { store } from '@/store/store';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ export default function Providers({ children }: ProvidersProps) {
     <Provider store={store}>
       {children}
       <Toaster
-        position="top-right"
+        position="bottom-right"
         toastOptions={{
           duration: 4000,
           style: {

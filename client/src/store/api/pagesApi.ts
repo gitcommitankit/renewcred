@@ -5,7 +5,7 @@ import type {
   SiteSettings,
   UpdatePageInput,
   UpdateSettingsInput,
-} from '../../types';
+} from '@/types';
 
 export const pagesApi = createApi({
   reducerPath: 'pagesApi',

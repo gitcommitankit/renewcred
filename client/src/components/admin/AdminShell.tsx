@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '../../hooks/useRedux';
+import { useAppSelector } from '@/hooks/useRedux';
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();

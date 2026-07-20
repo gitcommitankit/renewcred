@@ -1,7 +1,7 @@
 'use client';
 
+import { useAuth } from '@/hooks/useAuth';
 import { LogOut, Bell } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 
 import { usePathname } from 'next/navigation';
 

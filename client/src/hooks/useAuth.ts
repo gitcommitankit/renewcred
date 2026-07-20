@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from './useRedux';
-import { setCredentials, clearCredentials } from '../store/slices/authSlice';
-import { useLoginMutation, useLogoutMutation } from '../store/api/authApi';
-import type { LoginRequest } from '../types';
+import { useLoginMutation, useLogoutMutation } from '@/store/api/authApi';
+import { LoginRequest } from '@/types';
+import { clearCredentials, setCredentials } from '@/store/slices/authSlice';
 
 export function useAuth() {
   const dispatch = useAppDispatch();
@@ -14,16 +14,15 @@ export function useAuth() {
   const [logoutMutation, { isLoading: isLogoutLoading }] = useLogoutMutation();
 
   const login = useCallback(
-    async (credentials: LoginRequest) => {
+    async (credentials: LoginRequest, callbackUrl?: string | null) => {
       const result = await loginMutation(credentials).unwrap();
       dispatch(
         setCredentials({
           admin: result.data.admin,
           accessToken: result.data.accessToken,
-          refreshToken: result.data.refreshToken,
         })
       );
-      router.push('/admin');
+      router.push(callbackUrl || '/admin/dashboard');
       return result;
     },
     [loginMutation, dispatch, router]

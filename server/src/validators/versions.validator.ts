@@ -24,7 +24,7 @@ export const createSectionSchema = z.object({
     .min(1, 'Slug is required')
     .max(200)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
-  content: z.any().default({}),
+  content: z.record(z.unknown()).default({}),
   parentId: z.string().uuid().optional().nullable(),
   sortOrder: z.number().int().default(0),
 });

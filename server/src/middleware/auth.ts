@@ -1,7 +1,7 @@
+import { env } from '@/config/env';
+import { ApiError } from '@/utils/ApiError';
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { env } from '../config/env.js';
-import { ApiError } from '../utils/ApiError.js';
 
 export interface AuthPayload {
   adminId: string;
@@ -9,6 +9,7 @@ export interface AuthPayload {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       admin?: AuthPayload;

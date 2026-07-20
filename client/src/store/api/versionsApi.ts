@@ -9,7 +9,7 @@ import type {
   CreateSectionInput,
   UpdateSectionInput,
   ReorderSectionItem,
-} from '../../types';
+} from '@/types';
 
 export const versionsApi = createApi({
   reducerPath: 'versionsApi',

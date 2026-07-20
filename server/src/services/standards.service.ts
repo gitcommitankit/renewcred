@@ -1,6 +1,7 @@
-import { prisma } from '../config/database.js';
-import { ApiError } from '../utils/ApiError.js';
-import type { CreateStandardInput, UpdateStandardInput } from '../validators/standards.validator.js';
+import { prisma } from "@/config/database";
+import { ApiError } from "@/utils/ApiError";
+import { CreateStandardInput, UpdateStandardInput } from "@/validators/standards.validator";
+
 
 export class StandardsService {
   /**

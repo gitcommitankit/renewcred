@@ -39,14 +39,7 @@ async function getLatestVersion(slug: string): Promise<Version | null> {
   } catch { return null; }
 }
 
-async function getSections(versionId: string): Promise<Section[]> {
-  try {
-    const res = await fetch(`${API}/versions/${versionId}/sections`, { next: { revalidate: 60 } });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data ?? [];
-  } catch { return []; }
-}
+
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -99,9 +92,9 @@ export default async function StandardDetailPage({ params }: Props) {
 
       {/* 2-column layout */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Left sidebar */}
-          <div className="w-72 shrink-0 sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto pb-8">
+          <div className="w-full md:w-72 shrink-0 md:sticky md:top-24 max-h-[40vh] md:max-h-[calc(100vh-6rem)] overflow-y-auto pb-4 md:pb-8 border-b md:border-b-0 border-warm-gray-200">
             <StandardSidebar
               standardSlug={slug}
               versions={versions}

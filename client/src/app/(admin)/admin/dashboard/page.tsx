@@ -38,7 +38,7 @@ export default function DashboardPage() {
     <>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-charcoal-900">Overview</h2>
-        <p className="text-sm text-warm-gray-500 mt-0.5">Welcome back. Here's what's happening.</p>
+        <p className="text-sm text-warm-gray-500 mt-0.5">Welcome back. Here&apos;s what&apos;s happening.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

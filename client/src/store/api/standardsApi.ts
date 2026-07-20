@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Standard, ApiResponse, CreateStandardInput, UpdateStandardInput } from '../../types';
+import type { Standard, ApiResponse, CreateStandardInput, UpdateStandardInput } from '@/types';
 
 export const standardsApi = createApi({
   reducerPath: 'standardsApi',
@@ -29,18 +29,18 @@ export const standardsApi = createApi({
 
     // ---- Admin ----
     getAllStandards: builder.query<ApiResponse<Standard[]>, void>({
-      query: () => '/standards/admin/all',
+      query: () => '/admin/standards',
       providesTags: [{ type: 'Standard', id: 'ADMIN_LIST' }],
     }),
 
     getStandardById: builder.query<ApiResponse<Standard>, string>({
-      query: (id) => `/standards/admin/${id}`,
+      query: (id) => `/admin/standards/${id}`,
       providesTags: (_result, _error, id) => [{ type: 'Standard', id }],
     }),
 
     createStandard: builder.mutation<ApiResponse<Standard>, CreateStandardInput>({
       query: (body) => ({
-        url: '/standards/admin',
+        url: '/admin/standards',
         method: 'POST',
         body,
       }),
@@ -55,7 +55,7 @@ export const standardsApi = createApi({
       { id: string; data: UpdateStandardInput }
     >({
       query: ({ id, data }) => ({
-        url: `/standards/admin/${id}`,
+        url: `/admin/standards/${id}`,
         method: 'PUT',
         body: data,
       }),
@@ -68,7 +68,7 @@ export const standardsApi = createApi({
 
     deleteStandard: builder.mutation<ApiResponse<null>, string>({
       query: (id) => ({
-        url: `/standards/admin/${id}`,
+        url: `/admin/standards/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: [

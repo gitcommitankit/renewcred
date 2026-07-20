@@ -1,5 +1,7 @@
 'use client';
 
+import toast from 'react-hot-toast';
+
 export default function NewsletterForm() {
   return (
     <form
@@ -8,7 +10,7 @@ export default function NewsletterForm() {
         // UI-only — no backend connection yet
         const input = e.currentTarget.querySelector('input') as HTMLInputElement;
         if (input?.value) {
-          alert('Thanks for subscribing! We\'ll keep you updated.');
+          toast.success('Thanks for subscribing! We\'ll keep you updated.');
           input.value = '';
         }
       }}
@@ -18,7 +20,7 @@ export default function NewsletterForm() {
         type="email"
         placeholder="Your email address"
         required
-        className="flex-1 min-w-0 px-3 py-2 text-sm bg-charcoal-800 border border-charcoal-700 text-white placeholder-warm-gray-400 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-red"
+        className="flex-1 min-w-0 px-3 py-2 text-sm bg-charcoal-800 border border-charcoal-700 placeholder-warm-gray-400 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-red"
       />
       <button
         type="submit"

@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
-import standardsRoutes from './standards.routes.js';
-import versionsRoutes from './versions.routes.js';
-import pagesRoutes from './pages.routes.js';
+import standardsRoutes from './standards.routes';
+import versionsRoutes from './versions.routes';
+import pagesRoutes from './pages.routes';
 
-const router = Router();
+const router: Router = Router();
 
-router.use('/auth', authRoutes);
-router.use('/standards', standardsRoutes);
+router.use('/', authRoutes);
+router.use('/', standardsRoutes);
 router.use('/', versionsRoutes);
 router.use('/', pagesRoutes);
 

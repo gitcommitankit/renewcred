@@ -1,10 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Admin, ApiResponse, LoginRequest } from '../../types';
+import type { Admin, ApiResponse, LoginRequest } from '@/types';
 
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/auth`,
+    credentials: 'include',
     prepareHeaders: (headers) => {
       const token =
         typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
@@ -16,7 +17,7 @@ export const authApi = createApi({
   }),
   endpoints: (builder) => ({
     login: builder.mutation<
-      ApiResponse<{ accessToken: string; refreshToken: string; admin: Admin }>,
+      ApiResponse<{ accessToken: string; admin: Admin }>,
       LoginRequest
     >({
       query: (credentials) => ({
@@ -34,13 +35,12 @@ export const authApi = createApi({
     }),
 
     refresh: builder.mutation<
-      ApiResponse<{ accessToken: string; refreshToken: string }>,
-      { refreshToken: string }
+      ApiResponse<{ accessToken: string }>,
+      void
     >({
-      query: (body) => ({
+      query: () => ({
         url: '/refresh',
         method: 'POST',
-        body,
       }),
     }),
 

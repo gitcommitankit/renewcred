@@ -270,7 +270,7 @@ async function main() {
       { number: '2.0', title: 'Future Versions', slug: '2-0-future-versions', sortOrder: 1, parentId: null as string | null, contentKey: `${prefix}-2.0` },
       { number: '2.1', title: 'Future Versions', slug: '2-1-future-versions', sortOrder: 2, parentId: null as string | null, contentKey: `${prefix}-2.1` },
       { number: '2.2', title: 'Future Versions', slug: '2-2-future-versions', sortOrder: 5, parentId: null as string | null, contentKey: `${prefix}-2.0` },
-      { number: '3.0', title: 'Future Versions', slug: '3-0-future-versions', sortOrder: 6, parentId: null as string | null, contentKey: `${prefix}-3.0` || `${prefix}-2.0` },
+      { number: '3.0', title: 'Future Versions', slug: '3-0-future-versions', sortOrder: 6, parentId: null as string | null, contentKey: `${prefix}-3.0` },
       { number: '3.1', title: 'Future Versions', slug: '3-1-future-versions', sortOrder: 7, parentId: null as string | null, contentKey: `${prefix}-2.0` },
       { number: '3.2', title: 'Future Versions', slug: '3-2-future-versions', sortOrder: 10, parentId: null as string | null, contentKey: `${prefix}-2.0` },
     ];
@@ -323,16 +323,24 @@ async function main() {
     // Also create sections for the public consultation version
     const introContent = sectionContents[`${prefix}-1.0`] || tiptapDoc(paragraph('Content under consultation.'));
 
-    await prisma.section.create({
-      data: {
-        versionId: publicConsultation.id,
-        number: '1.0',
-        title: 'Introduction',
-        slug: '1-0-introduction',
-        content: introContent as object,
-        sortOrder: 0,
-      },
-    });
+    try {
+      await prisma.section.create({
+        data: {
+          versionId: publicConsultation.id,
+          number: '1.0',
+          title: 'Introduction',
+          slug: '1-0-introduction',
+          content: introContent as object,
+          sortOrder: 0,
+        },
+      });
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2002') {
+        console.log(`Skipping existing record`);
+      } else {
+        throw error;
+      }
+    }
 
     console.log(`  📄 Sections created for ${standard.title}`);
   }
@@ -353,7 +361,7 @@ async function main() {
         content: tiptapDoc(
           heading(1, pageData.title),
           paragraph(`Welcome to the ${pageData.title} page. Content will be managed through the admin panel.`)
-        ) as any,
+        ) as object,
       },
     });
   }

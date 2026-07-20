@@ -1,16 +1,17 @@
 {
-  "name": "renewcred",
+  "name": "server",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "description": "RenewCred CMS - Content Management System for climate standards",
   "scripts": {
-    "dev:client": "cd client && pnpm run dev",
-    "dev:server": "cd server && pnpm run dev",
-    "build:client": "cd client && pnpm run build",
-    "build:server": "cd server && pnpm run build",
-    "install:all": "cd client && pnpm install && cd ../server && pnpm install",
-    "db:migrate": "cd server && pnpm exec prisma migrate dev",
-    "db:seed": "cd server && pnpm run db:seed",
-    "db:reset": "cd server && pnpm run db:reset"
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter server dev",
+    "build:client": "pnpm --filter client build",
+    "build:server": "pnpm --filter server build",
+    "install:all": "pnpm install",
+    "db:migrate": "pnpm --filter server exec prisma migrate dev",
+    "db:seed": "pnpm --filter server db:seed",
+    "db:reset": "pnpm --filter server db:reset"
   },
   "engines": {
     "node": ">=20.0.0"

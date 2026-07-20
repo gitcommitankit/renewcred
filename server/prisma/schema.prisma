@@ -11,7 +11,10 @@ datasource db {
 }
 
 
+// ─────────────────────────────────────────────────
 // Authentication
+// Single admin model; no multi-role RBAC needed for this scope.
+// ─────────────────────────────────────────────────
 
 
 model Admin {
@@ -26,7 +29,12 @@ model Admin {
 }
 
 
+// ─────────────────────────────────────────────────
 // Standards & Versioned Content
+// Standard → Version (1:N) → Section (tree via parentId self-reference)
+// Sections store rich content as JSON (Tiptap ProseMirror format).
+// All child records cascade-delete when parent is deleted.
+// ─────────────────────────────────────────────────
 
 
 model Standard {
@@ -89,7 +97,10 @@ model Section {
 }
 
 
+// ─────────────────────────────────────────────────
 // Generic Pages (Buyers, Suppliers, Contact Us, etc.)
+// Managed via admin panel; public access by slug.
+// ─────────────────────────────────────────────────
 
 
 model Page {
@@ -105,7 +116,10 @@ model Page {
 }
 
 
-// Site Settings (Singleton)
+// ─────────────────────────────────────────────────
+// Site Settings (Singleton row pattern)
+// Uses a fixed primary key 'singleton' to ensure only one record exists.
+// ─────────────────────────────────────────────────
 
 
 model SiteSettings {

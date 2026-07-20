@@ -3,14 +3,17 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Leaf, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../../../../hooks/useAuth';
-import { Button } from '../../../../components/ui/Button';
-import { Input } from '../../../../components/ui/Input';
 import toast from 'react-hot-toast';
+import { Suspense } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
-export default function LoginPage() {
+function LoginForm() {
   const { login, isLoginLoading } = useAuth();
   const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
+
   const [email, setEmail] = useState('admin@renewcred.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +37,7 @@ export default function LoginPage() {
     setErrors({});
 
     try {
-      await login({ email, password });
+      await login({ email, password }, callbackUrl);
       toast.success('Welcome back!');
     } catch (err: unknown) {
       const msg =
@@ -43,9 +46,6 @@ export default function LoginPage() {
       toast.error(msg);
     }
   };
-
-  const callbackUrl = searchParams.get('callbackUrl');
-  void callbackUrl; // used by the auth hook redirect
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-warm-gray-100 px-4">
@@ -113,5 +113,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-warm-gray-100">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

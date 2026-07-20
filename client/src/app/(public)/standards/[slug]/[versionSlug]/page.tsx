@@ -36,14 +36,6 @@ async function getVersionBySlug(standardSlug: string, versionSlug: string): Prom
   } catch { return null; }
 }
 
-async function getSections(versionId: string): Promise<Section[]> {
-  try {
-    const res = await fetch(`${API}/versions/${versionId}/sections`, { next: { revalidate: 60 } });
-    if (!res.ok) return [];
-    return (await res.json()).data ?? [];
-  } catch { return []; }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, versionSlug } = await params;
   const [standard, version] = await Promise.all([getStandard(slug), getVersionBySlug(slug, versionSlug)]);

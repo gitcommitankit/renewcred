@@ -1,9 +1,9 @@
+import prisma from '@/config/database';
+import { env } from '@/config/env';
+import { AuthPayload } from '@/middleware/auth';
+import { ApiError } from '@/utils/ApiError';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../config/database.js';
-import { env } from '../config/env.js';
-import { ApiError } from '../utils/ApiError.js';
-import type { AuthPayload } from '../middleware/auth.js';
 
 export class AuthService {
   static async login(email: string, password: string) {
@@ -22,11 +22,11 @@ export class AuthService {
     const payload: AuthPayload = { adminId: admin.id, email: admin.email };
 
     const accessToken = jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-      expiresIn: env.JWT_ACCESS_EXPIRES_IN as any,
+      expiresIn: env.JWT_ACCESS_EXPIRES_IN as jwt.SignOptions['expiresIn'],
     });
 
     const refreshToken = jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-      expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
+      expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'],
     });
 
     return {
@@ -53,11 +53,11 @@ export class AuthService {
       const payload: AuthPayload = { adminId: admin.id, email: admin.email };
 
       const newAccessToken = jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-        expiresIn: env.JWT_ACCESS_EXPIRES_IN as any,
+        expiresIn: env.JWT_ACCESS_EXPIRES_IN as jwt.SignOptions['expiresIn'],
       });
 
       const newRefreshToken = jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-        expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
+        expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'],
       });
 
       return {

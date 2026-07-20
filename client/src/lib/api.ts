@@ -1,5 +1,19 @@
 import axios from 'axios';
 
+/**
+ * ARCHITECTURE NOTE: Dual-Client Pattern
+ * 
+ * This project uses Redux Toolkit (RTK Query) for all primary data fetching and state management
+ * (see `src/store/api/`). RTK Query provides automatic caching, background refetching, and tag invalidation.
+ * 
+ * This Axios client (`lib/api.ts`) exists specifically to handle the robust, queue-based 
+ * token refresh interceptor logic (handling concurrent 401s, queuing requests while refreshing, etc.).
+ * While RTK Query has its own baseQuery wrapper for refresh, the Axios interceptor pattern used here
+ * is more robust for complex SPAs with many simultaneous requests.
+ * 
+ * Do NOT use this client for general API requests (GET/POST for standards, versions, etc.).
+ * Always use the generated RTK Query hooks (e.g., `useGetAllStandardsQuery`).
+ */
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 const api = axios.create({
@@ -69,20 +83,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshToken =
-          typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-
-        const { data } = await api.post('/auth/refresh', { refreshToken });
+        const { data } = await api.post('/auth/refresh');
         const newAccessToken = data.data.accessToken;
-        const newRefreshToken = data.data.refreshToken;
 
         if (typeof window !== 'undefined') {
           localStorage.setItem('accessToken', newAccessToken);
-          localStorage.setItem('refreshToken', newRefreshToken);
         }
 
         processQueue(null, newAccessToken);
@@ -93,7 +98,7 @@ api.interceptors.response.use(
         // Clear tokens and redirect to login
         if (typeof window !== 'undefined') {
           localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('admin');
           window.location.href = '/admin/login';
         }
         return Promise.reject(refreshError);

@@ -1,5 +1,6 @@
-import { prisma } from '../config/database.js';
-import { ApiError } from '../utils/ApiError.js';
+import prisma from '@/config/database';
+import { ApiError } from '@/utils/ApiError';
+import type { Prisma } from '@prisma/client';
 
 export class PagesService {
   /**
@@ -42,7 +43,7 @@ export class PagesService {
   /**
    * Update a page (admin)
    */
-  static async update(id: string, data: { title?: string; content?: any; isPublished?: boolean }) {
+  static async update(id: string, data: { title?: string; content?: Prisma.InputJsonValue; isPublished?: boolean }) {
     await this.getById(id);
     return prisma.page.update({ where: { id }, data });
   }
@@ -69,7 +70,7 @@ export class PagesService {
     address?: string;
     email?: string;
     phone?: string;
-    socialLinks?: any;
+    socialLinks?: Record<string, string>;
     footerText?: string;
     newsletterEnabled?: boolean;
   }) {

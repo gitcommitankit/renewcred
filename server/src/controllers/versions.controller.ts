@@ -1,9 +1,9 @@
+import { VersionsService } from '@/services/versions.service';
+import { ApiResponse } from '@/utils/ApiResponse';
 import type { Request, Response, NextFunction } from 'express';
-import { VersionsService } from '../services/versions.service.js';
-import { ApiResponse } from '../utils/ApiResponse.js';
 
 export class VersionsController {
-  // ---- Public ----
+  // ── Public endpoints (no auth required) ──────────────────────────
 
   static async getByStandardSlug(req: Request, res: Response, next: NextFunction) {
     try {
@@ -41,7 +41,7 @@ export class VersionsController {
     }
   }
 
-  // ---- Admin ----
+  // ── Admin endpoints (authenticate middleware required) ────────────
 
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
@@ -79,7 +79,7 @@ export class VersionsController {
     }
   }
 
-  // ---- Admin Sections ----
+  // ── Admin section endpoints ───────────────────────────────────────
 
   static async createSection(req: Request, res: Response, next: NextFunction) {
     try {

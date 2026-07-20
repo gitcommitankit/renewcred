@@ -11,8 +11,8 @@ import {
   ChevronRight,
   Leaf,
 } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../hooks/useRedux';
-import { toggleSidebar } from '../../store/slices/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/hooks/useRedux';
+import { toggleSidebar } from '@/store/slices/uiSlice';
 
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true },

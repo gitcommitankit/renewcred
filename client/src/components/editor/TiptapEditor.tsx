@@ -11,8 +11,7 @@ import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import Mathematics from '@tiptap/extension-mathematics';
-import { Editor } from '@tiptap/core';
-import type { EditorState, Transaction } from '@tiptap/pm/state';
+
 import 'katex/dist/katex.min.css';
 import {
   Bold,
@@ -33,7 +32,8 @@ import {
   Unlink,
   Sigma,
 } from 'lucide-react';
-import type { TiptapDocument } from '../../types';
+import { TiptapDocument } from '@/types';
+
 
 interface TiptapEditorProps {
   content: TiptapDocument | null;

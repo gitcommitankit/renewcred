@@ -3,12 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import routes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 
-const app = express();
+const app: express.Application = express();
 
 // ---- Security ----
 app.use(helmet());
@@ -24,11 +25,12 @@ app.use(
 // ---- Parsing ----
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // ---- Compression ----
 app.use(compression());
 
-// ---- Logging ----
+// ---- Logging — combined format in production, verbose dev format locally ----
 if (env.NODE_ENV !== 'test') {
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }

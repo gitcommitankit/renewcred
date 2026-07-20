@@ -1,12 +1,7 @@
-import { prisma } from '../config/database.js';
-import { ApiError } from '../utils/ApiError.js';
-import type {
-  CreateVersionInput,
-  UpdateVersionInput,
-  CreateSectionInput,
-  UpdateSectionInput,
-  ReorderSectionsInput,
-} from '../validators/versions.validator.js';
+import { prisma } from "@/config/database";
+import { ApiError } from "@/utils/ApiError";
+import { CreateSectionInput, CreateVersionInput, ReorderSectionsInput, UpdateSectionInput, UpdateVersionInput } from "@/validators/versions.validator";
+
 
 export class VersionsService {
   
@@ -107,22 +102,24 @@ export class VersionsService {
    * Create a new version (admin)
    */
   static async create(standardId: string, data: CreateVersionInput) {
-    // If this version is marked as latest, unmark all others
-    if (data.isLatest) {
-      await prisma.version.updateMany({
-        where: { standardId },
-        data: { isLatest: false },
-      });
-    }
+    return prisma.$transaction(async (tx) => {
+      // If this version is marked as latest, unmark all others
+      if (data.isLatest) {
+        await tx.version.updateMany({
+          where: { standardId },
+          data: { isLatest: false },
+        });
+      }
 
-    return prisma.version.create({
-      data: {
-        ...data,
-        standardId,
-        certifiedAt: data.certifiedAt ? new Date(data.certifiedAt) : null,
-        consultationStartDate: data.consultationStartDate ? new Date(data.consultationStartDate) : null,
-        consultationEndDate: data.consultationEndDate ? new Date(data.consultationEndDate) : null,
-      },
+      return tx.version.create({
+        data: {
+          ...data,
+          standardId,
+          certifiedAt: data.certifiedAt ? new Date(data.certifiedAt) : null,
+          consultationStartDate: data.consultationStartDate ? new Date(data.consultationStartDate) : null,
+          consultationEndDate: data.consultationEndDate ? new Date(data.consultationEndDate) : null,
+        },
+      });
     });
   }
 
@@ -136,28 +133,30 @@ export class VersionsService {
       throw ApiError.notFound('Version not found');
     }
 
-    // If marking as latest, unmark others
-    if (data.isLatest) {
-      await prisma.version.updateMany({
-        where: { standardId: version.standardId, id: { not: id } },
-        data: { isLatest: false },
-      });
-    }
+    return prisma.$transaction(async (tx) => {
+      // If marking as latest, unmark others
+      if (data.isLatest) {
+        await tx.version.updateMany({
+          where: { standardId: version.standardId, id: { not: id } },
+          data: { isLatest: false },
+        });
+      }
 
-    return prisma.version.update({
-      where: { id },
-      data: {
-        ...data,
-        certifiedAt: data.certifiedAt !== undefined
-          ? (data.certifiedAt ? new Date(data.certifiedAt) : null)
-          : undefined,
-        consultationStartDate: data.consultationStartDate !== undefined
-          ? (data.consultationStartDate ? new Date(data.consultationStartDate) : null)
-          : undefined,
-        consultationEndDate: data.consultationEndDate !== undefined
-          ? (data.consultationEndDate ? new Date(data.consultationEndDate) : null)
-          : undefined,
-      },
+      return tx.version.update({
+        where: { id },
+        data: {
+          ...data,
+          certifiedAt: data.certifiedAt !== undefined
+            ? (data.certifiedAt ? new Date(data.certifiedAt) : null)
+            : undefined,
+          consultationStartDate: data.consultationStartDate !== undefined
+            ? (data.consultationStartDate ? new Date(data.consultationStartDate) : null)
+            : undefined,
+          consultationEndDate: data.consultationEndDate !== undefined
+            ? (data.consultationEndDate ? new Date(data.consultationEndDate) : null)
+            : undefined,
+        },
+      });
     });
   }
 
@@ -221,6 +220,7 @@ export class VersionsService {
     return prisma.section.create({
       data: {
         ...data,
+        content: data.content ? (data.content as any) : undefined,
         versionId,
       },
     });
@@ -235,7 +235,13 @@ export class VersionsService {
       throw ApiError.notFound('Section not found');
     }
 
-    return prisma.section.update({ where: { id }, data });
+    return prisma.section.update({
+      where: { id },
+      data: {
+        ...data,
+        content: data.content ? (data.content as any) : undefined,
+      },
+    });
   }
 
   /**
@@ -254,6 +260,15 @@ export class VersionsService {
    * Reorder sections (admin)
    */
   static async reorderSections(versionId: string, data: ReorderSectionsInput) {
+    const sectionIds = data.sections.map((s) => s.id);
+    const validSectionsCount = await prisma.section.count({
+      where: { id: { in: sectionIds }, versionId },
+    });
+
+    if (validSectionsCount !== sectionIds.length) {
+      throw ApiError.badRequest('Some sections do not belong to this version');
+    }
+
     const operations = data.sections.map((s) =>
       prisma.section.update({
         where: { id: s.id },
