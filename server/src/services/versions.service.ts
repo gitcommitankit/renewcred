@@ -12,35 +12,36 @@ export class VersionsService {
    * Get all non-draft versions for a standard (public)
    */
   static async getByStandardSlug(standardSlug: string) {
-    const standard = await prisma.standard.findUnique({
-      where: { slug: standardSlug, isPublished: true },
-    });
-
-    if (!standard) {
-      throw ApiError.notFound('Standard not found');
-    }
-
-    return prisma.version.findMany({
-      where: { standardId: standard.id, status: { not: 'DRAFT' } },
+    const versions = await prisma.version.findMany({
+      where: {
+        standard: { slug: standardSlug, isPublished: true },
+        status: { not: 'DRAFT' },
+      },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (versions.length === 0) {
+      const standardExists = await prisma.standard.findFirst({
+        where: { slug: standardSlug, isPublished: true },
+        select: { id: true },
+      });
+      if (!standardExists) {
+        throw ApiError.notFound('Standard not found');
+      }
+    }
+
+    return versions;
   }
 
   /**
    * Get a specific version with all sections (public)
    */
   static async getBySlug(standardSlug: string, versionSlug: string) {
-    const standard = await prisma.standard.findUnique({
-      where: { slug: standardSlug, isPublished: true },
-    });
-
-    if (!standard) {
-      throw ApiError.notFound('Standard not found');
-    }
-
-    const version = await prisma.version.findUnique({
+    const version = await prisma.version.findFirst({
       where: {
-        standardId_slug: { standardId: standard.id, slug: versionSlug },
+        slug: versionSlug,
+        status: { not: 'DRAFT' },
+        standard: { slug: standardSlug, isPublished: true },
       },
       include: {
         sections: {
@@ -49,7 +50,7 @@ export class VersionsService {
       },
     });
 
-    if (!version || version.status === 'DRAFT') {
+    if (!version) {
       throw ApiError.notFound('Version not found');
     }
 
@@ -60,16 +61,12 @@ export class VersionsService {
    * Get the latest version for a standard (public)
    */
   static async getLatest(standardSlug: string) {
-    const standard = await prisma.standard.findUnique({
-      where: { slug: standardSlug, isPublished: true },
-    });
-
-    if (!standard) {
-      throw ApiError.notFound('Standard not found');
-    }
-
     const version = await prisma.version.findFirst({
-      where: { standardId: standard.id, isLatest: true },
+      where: {
+        status: { not: 'DRAFT' },
+        standard: { slug: standardSlug, isPublished: true },
+      },
+      orderBy: [{ isLatest: 'desc' }, { createdAt: 'desc' }],
       include: {
         sections: {
           orderBy: { sortOrder: 'asc' },
@@ -78,22 +75,14 @@ export class VersionsService {
     });
 
     if (!version) {
-      // Fallback to most recent non-draft version
-      const fallback = await prisma.version.findFirst({
-        where: { standardId: standard.id, status: { not: 'DRAFT' } },
-        orderBy: { createdAt: 'desc' },
-        include: {
-          sections: {
-            orderBy: { sortOrder: 'asc' },
-          },
-        },
+      const standardExists = await prisma.standard.findFirst({
+        where: { slug: standardSlug, isPublished: true },
+        select: { id: true },
       });
-
-      if (!fallback) {
-        throw ApiError.notFound('No published versions found');
+      if (!standardExists) {
+        throw ApiError.notFound('Standard not found');
       }
-
-      return fallback;
+      throw ApiError.notFound('No published versions found');
     }
 
     return version;

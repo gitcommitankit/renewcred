@@ -24,7 +24,7 @@ import TiptapEditor from '@/components/editor/TiptapEditor';
 import { Input } from '@/components/ui/Input';
 import { VersionBadge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Button';
-import { Section, TiptapDocument } from '@/types';
+import { Section, TiptapDocument, TiptapNode } from '@/types';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
   useCreateSectionMutation,
@@ -39,7 +39,7 @@ function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-/* ─────────────────────────── Sortable tree item ─────────────────────────── */
+// Sortable tree item
 function SortableTreeItem({
   section,
   allSections,
@@ -136,7 +136,7 @@ function SortableTreeItem({
   );
 }
 
-/* ──────────────── Main editor page ──────────────── */
+// Main editor page
 export default function VersionEditorPage() {
   const params = useParams<{ id: string; versionId: string }>();
 
@@ -151,53 +151,81 @@ export default function VersionEditorPage() {
   const allSections = [...(sectionsData?.data ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
   const rootSections = allSections.filter((s) => !s.parentId);
 
-  const [activeSection, setActiveSection] = useState<Section | null>(null);
-  const [activeTitle, setActiveTitle] = useState('');
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const activeSection = allSections.find((s) => s.id === activeSectionId) ?? null;
   const [editorKey, setEditorKey] = useState(0);
   const [editorContent, setEditorContent] = useState<TiptapDocument | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Section | null>(null);
   const [showNewSection, setShowNewSection] = useState(false);
   const [newSection, setNewSection] = useState({ number: '', title: '', parentId: '' });
 
+  // Build the content sent INTO the editor
+  const buildEditorContent = useCallback((section: Section): TiptapDocument => {
+    const base = section.content as TiptapDocument | null;
+    const bodyNodes = base?.content ?? [];
+    return {
+      type: 'doc',
+      content: [
+        { type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: section.title }] },
+        ...bodyNodes,
+      ],
+    };
+  }, []);
+
+  // Extract title and body back out of the editor content before saving
+  const splitEditorContent = useCallback((doc: TiptapDocument): { title: string; content: TiptapDocument } => {
+    const nodes = doc.content ?? [];
+    const [first, ...rest] = nodes;
+    const title =
+      first?.type === 'heading'
+        ? (first.content ?? []).map((n: TiptapNode) => n.text ?? '').join('')
+        : '';
+    return {
+      title: title.trim(),
+      content: { type: 'doc', content: rest },
+    };
+  }, []);
+
   // Auto-select first section on initial load only
   useEffect(() => {
-    if (allSections.length > 0 && !activeSection) {
-      setActiveSection(allSections[0]);
-      setActiveTitle(allSections[0].title);
-      setEditorContent(allSections[0].content);
+    if (allSections.length > 0 && !activeSectionId) {
+      const first = allSections[0];
+      setActiveSectionId(first.id);
+      setEditorContent(buildEditorContent(first));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!allSections.length]);
 
   const handleSelectSection = (section: Section) => {
-    setActiveSection(section);
-    setActiveTitle(section.title);
-    setEditorContent(section.content);
+    setActiveSectionId(section.id);
+    setEditorContent(buildEditorContent(section));
     // Force re-mount the editor so it cleanly loads the new content
     setEditorKey((k) => k + 1);
   };
 
   // Debounced auto-save
   const debouncedContent = useDebounce(editorContent, 1500);
-  const debouncedTitle = useDebounce(activeTitle, 1500);
 
-  const doSave = useCallback(async (content: TiptapDocument, title: string, sectionId: string) => {
+  const doSave = useCallback(async (doc: TiptapDocument, sectionId: string) => {
+    const { title, content } = splitEditorContent(doc);
     try {
       await updateSection({ id: sectionId, versionId: params.versionId, data: { content, title } }).unwrap();
     } catch { /* silent on auto-save */ }
-  }, [updateSection, params.versionId]);
+  }, [updateSection, params.versionId, splitEditorContent]);
 
   useEffect(() => {
-    if (debouncedContent && debouncedTitle?.trim() && activeSection) {
-      doSave(debouncedContent, debouncedTitle.trim(), activeSection.id);
+    if (debouncedContent && activeSectionId) {
+      doSave(debouncedContent, activeSectionId);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedContent, debouncedTitle]);
+  }, [debouncedContent]);
 
   const handleManualSave = async () => {
-    if (!activeSection || !editorContent || !activeTitle.trim()) return;
+    if (!activeSectionId || !editorContent) return;
+    const { title, content } = splitEditorContent(editorContent);
+    if (!title.trim()) return;
     try {
-      await updateSection({ id: activeSection.id, versionId: params.versionId, data: { content: editorContent, title: activeTitle } }).unwrap();
+      await updateSection({ id: activeSectionId, versionId: params.versionId, data: { content, title } }).unwrap();
       toast.success('Saved!');
     } catch {
       toast.error('Failed to save');
@@ -231,9 +259,8 @@ export default function VersionEditorPage() {
       toast.success('Section created');
       setShowNewSection(false);
       setNewSection({ number: '', title: '', parentId: '' });
-      setActiveSection(result.data);
-      setActiveTitle(result.data.title);
-      setEditorContent(result.data.content);
+      setActiveSectionId(result.data.id);
+      setEditorContent(buildEditorContent(result.data));
       setEditorKey((k) => k + 1);
     } catch (err: unknown) {
       toast.error((err as { data?: { message?: string } })?.data?.message || 'Failed to create section');
@@ -245,9 +272,8 @@ export default function VersionEditorPage() {
     try {
       await deleteSection({ id: deleteTarget.id, versionId: params.versionId }).unwrap();
       toast.success('Section deleted');
-      if (activeSection?.id === deleteTarget.id) {
-        setActiveSection(null);
-        setActiveTitle('');
+      if (activeSectionId === deleteTarget.id) {
+        setActiveSectionId(null);
         setEditorContent(null);
         setEditorKey((k) => k + 1);
       }
@@ -260,11 +286,7 @@ export default function VersionEditorPage() {
   // DnD sensors
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  /**
-   * Recursively walk the reordered flat list and compute hierarchical numbers.
-   * Root sections (no parent) get numbers like "1.0", "2.0", etc.
-   * Children get parent's prefix + ".index" e.g. "2.1", "2.1.1"
-   */
+  // Recursively walk the reordered flat list and compute hierarchical numbers
   const computeNumbers = (sections: Section[], parentId: string | null, prefix: string): Map<string, string> => {
     const result = new Map<string, string>();
     const siblings = sections.filter((s) => s.parentId === parentId);
@@ -425,13 +447,7 @@ export default function VersionEditorPage() {
             <div className="mx-auto">
               <div className="flex items-center gap-3 mb-4">
                 <span className="text-xs font-mono text-warm-gray-500 bg-warm-gray-200 px-2 py-1 rounded shrink-0">{activeSection.number}</span>
-                <input
-                  type="text"
-                  value={activeTitle}
-                  onChange={(e) => setActiveTitle(e.target.value)}
-                  placeholder="Section title"
-                  className="flex-1 text-lg font-bold text-charcoal-900 bg-transparent border-b-2 border-transparent hover:border-warm-gray-300 focus:outline-none transition-colors px-1 py-0.5"
-                />
+                <h2 className="flex-1 text-lg font-bold text-charcoal-900 px-1 py-0.5 select-none">{activeSection.title}</h2>
               </div>
               <TiptapEditor
                 key={editorKey}

@@ -74,6 +74,8 @@ model Version {
   updatedAt             DateTime      @updatedAt @map("updated_at")
 
   @@unique([standardId, slug])
+  @@index([standardId, status])
+  @@index([standardId, isLatest])
   @@map("versions")
 }
 
@@ -93,6 +95,8 @@ model Section {
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@unique([versionId, slug])
+  @@index([versionId, sortOrder])
+  @@index([parentId])
   @@map("sections")
 }
 
@@ -123,15 +127,16 @@ model Page {
 
 
 model SiteSettings {
-  id                String  @id @default("singleton")
-  siteName          String  @default("RenewCred") @map("site_name")
+  id                String   @id @default("singleton")
+  siteName          String   @default("RenewCred") @map("site_name")
   tagline           String?
   address           String?
   email             String?
   phone             String?
-  socialLinks       Json?   @map("social_links")
-  footerText        String? @map("footer_text")
-  newsletterEnabled Boolean @default(true) @map("newsletter_enabled")
+  socialLinks       Json?    @map("social_links")
+  footerText        String?  @map("footer_text")
+  newsletterEnabled Boolean  @default(true) @map("newsletter_enabled")
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@map("site_settings")
 }
