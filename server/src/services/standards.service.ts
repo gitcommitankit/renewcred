@@ -11,7 +11,15 @@ export class StandardsService {
     return prisma.standard.findMany({
       where: { isPublished: true },
       orderBy: { sortOrder: 'asc' },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        icon: true,
+        sortOrder: true,
+        createdAt: true,
+        updatedAt: true,
         _count: { select: { versions: true } },
       },
     });
@@ -103,7 +111,6 @@ export class StandardsService {
    * Update an existing standard (admin)
    */
   static async update(id: string, data: UpdateStandardInput) {
-    await this.getById(id); // Ensure exists
     return prisma.standard.update({ where: { id }, data });
   }
 
@@ -111,7 +118,6 @@ export class StandardsService {
    * Delete a standard and all its versions/sections (admin)
    */
   static async delete(id: string) {
-    await this.getById(id); // Ensure exists
     return prisma.standard.delete({ where: { id } });
   }
 }

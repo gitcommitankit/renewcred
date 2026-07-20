@@ -18,6 +18,17 @@ export class VersionsService {
         status: { not: 'DRAFT' },
       },
       orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        versionLabel: true,
+        slug: true,
+        status: true,
+        certifiedAt: true,
+        consultationStartDate: true,
+        consultationEndDate: true,
+        isLatest: true,
+        createdAt: true,
+      },
     });
 
     if (versions.length === 0) {
@@ -154,12 +165,6 @@ export class VersionsService {
    * Delete a version (admin)
    */
   static async delete(id: string) {
-    const version = await prisma.version.findUnique({ where: { id } });
-
-    if (!version) {
-      throw ApiError.notFound('Version not found');
-    }
-
     return prisma.version.delete({ where: { id } });
   }
 
@@ -201,12 +206,6 @@ export class VersionsService {
    * Create a section (admin)
    */
   static async createSection(versionId: string, data: CreateSectionInput) {
-    // Verify version exists
-    const version = await prisma.version.findUnique({ where: { id: versionId } });
-    if (!version) {
-      throw ApiError.notFound('Version not found');
-    }
-
     return prisma.section.create({
       data: {
         ...data,
@@ -220,11 +219,6 @@ export class VersionsService {
    * Update a section (admin)
    */
   static async updateSection(id: string, data: UpdateSectionInput) {
-    const section = await prisma.section.findUnique({ where: { id } });
-    if (!section) {
-      throw ApiError.notFound('Section not found');
-    }
-
     return prisma.section.update({
       where: { id },
       data: {
@@ -238,11 +232,6 @@ export class VersionsService {
    * Delete a section (admin)
    */
   static async deleteSection(id: string) {
-    const section = await prisma.section.findUnique({ where: { id } });
-    if (!section) {
-      throw ApiError.notFound('Section not found');
-    }
-
     return prisma.section.delete({ where: { id } });
   }
 
@@ -250,15 +239,6 @@ export class VersionsService {
    * Reorder sections (admin)
    */
   static async reorderSections(versionId: string, data: ReorderSectionsInput) {
-    const sectionIds = data.sections.map((s) => s.id);
-    const validSectionsCount = await prisma.section.count({
-      where: { id: { in: sectionIds }, versionId },
-    });
-
-    if (validSectionsCount !== sectionIds.length) {
-      throw ApiError.badRequest('Some sections do not belong to this version');
-    }
-
     const operations = data.sections.map((s) =>
       prisma.section.update({
         where: { id: s.id },

@@ -7,6 +7,7 @@ export class StandardsController {
 
   static async getPublished(_req: Request, res: Response, next: NextFunction) {
     try {
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       const standards = await StandardsService.getPublished();
       res.json(ApiResponse.success(standards));
     } catch (error) {
@@ -16,6 +17,7 @@ export class StandardsController {
 
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       const standard = await StandardsService.getBySlug(req.params.slug as string);
       res.json(ApiResponse.success(standard));
     } catch (error) {

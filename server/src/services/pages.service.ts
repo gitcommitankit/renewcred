@@ -8,11 +8,11 @@ export class PagesService {
    * Get a published page by slug (public)
    */
   static async getBySlug(slug: string) {
-    const page = await prisma.page.findUnique({
-      where: { slug },
+    const page = await prisma.page.findFirst({
+      where: { slug, isPublished: true },
     });
 
-    if (!page || !page.isPublished) {
+    if (!page) {
       throw ApiError.notFound('Page not found');
     }
 
@@ -45,7 +45,6 @@ export class PagesService {
    * Update a page (admin)
    */
   static async update(id: string, data: UpdatePageInput) {
-    await this.getById(id);
     return prisma.page.update({ 
       where: { id }, 
       data: {
@@ -56,13 +55,34 @@ export class PagesService {
   }
 
   /**
-   * Get site settings
+   * Seed site settings on server startup if not present
+   */
+  static async initSettings() {
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'singleton' } });
+    if (!settings) {
+      await prisma.siteSettings.create({ data: { id: 'singleton' } });
+    }
+  }
+
+  /**
+   * Get site settings (public/admin)
    */
   static async getSettings() {
-    let settings = await prisma.siteSettings.findUnique({ where: { id: 'singleton' } });
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'singleton' } });
 
     if (!settings) {
-      settings = await prisma.siteSettings.create({ data: { id: 'singleton' } });
+      return {
+        id: 'singleton',
+        siteName: 'RenewCred',
+        tagline: null,
+        address: null,
+        email: null,
+        phone: null,
+        socialLinks: null,
+        footerText: null,
+        newsletterEnabled: true,
+        updatedAt: new Date(),
+      };
     }
 
     return settings;

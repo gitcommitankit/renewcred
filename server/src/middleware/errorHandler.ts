@@ -30,11 +30,11 @@ export const errorHandler = (
       return;
     }
 
-    if (err.code === 'P2025') {
+    if (err.code === 'P2025' || err.code === 'P2003') {
       res.status(404).json({
         success: false,
         statusCode: 404,
-        message: 'Record not found',
+        message: err.code === 'P2003' ? 'Related record not found' : 'Record not found',
       });
       return;
     }

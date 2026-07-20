@@ -8,14 +8,10 @@ import jwt from 'jsonwebtoken';
 export class AuthService {
   static async login(email: string, password: string) {
     const admin = await prisma.admin.findUnique({ where: { email } });
+    const DUMMY_HASH = '$2a$10$e8p.KxJ7WjE2QdM4KkL6s.o5f1A4t3M2N1O0P9Q8R7S6T5U4V3W2X';
+    const isPasswordValid = await bcrypt.compare(password, admin ? admin.passwordHash : DUMMY_HASH);
 
-    if (!admin) {
-      throw ApiError.unauthorized('Invalid email or password');
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
-
-    if (!isPasswordValid) {
+    if (!admin || !isPasswordValid) {
       throw ApiError.unauthorized('Invalid email or password');
     }
 

@@ -3,12 +3,16 @@ import app from './app.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { prisma } from './config/database.js';
+import { PagesService } from './services/pages.service.js';
 
 const start = async () => {
   try {
     // Verify database connection
     await prisma.$connect();
     logger.info('✅ Database connected');
+
+    // Ensure singleton settings exist
+    await PagesService.initSettings();
 
     app.listen(env.SERVER_PORT, () => {
       logger.info(`🚀 Server running on http://localhost:${env.SERVER_PORT}`);

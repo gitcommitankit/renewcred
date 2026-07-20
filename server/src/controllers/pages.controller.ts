@@ -7,6 +7,7 @@ export class PagesController {
 
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       const page = await PagesService.getBySlug(req.params.slug as string);
       res.json(ApiResponse.success(page));
     } catch (error) {
@@ -16,6 +17,7 @@ export class PagesController {
 
   static async getSettings(_req: Request, res: Response, next: NextFunction) {
     try {
+      res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
       const settings = await PagesService.getSettings();
       res.json(ApiResponse.success(settings));
     } catch (error) {
