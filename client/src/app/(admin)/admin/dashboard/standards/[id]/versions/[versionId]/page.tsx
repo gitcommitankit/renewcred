@@ -141,7 +141,7 @@ export default function VersionEditorPage() {
   const { data: versionData, isLoading: versionLoading } = useGetVersionByIdQuery(params.versionId);
   const [createSection, { isLoading: isCreating }] = useCreateSectionMutation();
   const [updateSection, { isLoading: isSaving }] = useUpdateSectionMutation();
-  const [autoSaveSection] = useAutoSaveSectionMutation();
+  const [autoSaveSection, { isLoading: isAutoSaving }] = useAutoSaveSectionMutation();
   const [deleteSection, { isLoading: isDeleting }] = useDeleteSectionMutation();
   const [reorderSections] = useReorderSectionsMutation();
 
@@ -360,8 +360,8 @@ export default function VersionEditorPage() {
           {version && <VersionBadge status={version.status} />}
         </div>
         <div className="flex items-center gap-2">
-          {isSaving && (
-            <span className="flex items-center gap-1.5 text-xs text-warm-gray-500">
+          {(isSaving || isAutoSaving) && (
+            <span className="flex items-center gap-1.5 text-xs text-warm-gray-500 mr-2">
               <Loader2 size={13} className="animate-spin" /> Auto-saving…
             </span>
           )}

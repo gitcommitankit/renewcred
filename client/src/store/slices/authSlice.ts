@@ -9,24 +9,11 @@ interface AuthState {
 }
 
 const getInitialState = (): AuthState => {
-  if (typeof window === 'undefined') {
-    return {
-      admin: null,
-      accessToken: null,
-      isAuthenticated: false,
-      isLoading: true,
-    };
-  }
-
-  const accessToken = localStorage.getItem('accessToken');
-  const adminRaw = localStorage.getItem('admin');
-  const admin = adminRaw ? (JSON.parse(adminRaw) as Admin) : null;
-
   return {
-    admin,
-    accessToken,
-    isAuthenticated: !!accessToken && !!admin,
-    isLoading: false,
+    admin: null,
+    accessToken: null, // access token is no longer available in client memory on load
+    isAuthenticated: false,
+    isLoading: true,
   };
 };
 

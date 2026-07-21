@@ -5,13 +5,6 @@ export const createBaseQuery = (path = '') => {
   const rawBaseQuery = fetchBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}${path}`,
     credentials: 'include',
-    prepareHeaders: (headers) => {
-      const token = typeof window !== 'undefined'
-        ? localStorage.getItem('accessToken')
-        : null;
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      return headers;
-    },
   });
 
   const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
@@ -36,19 +29,9 @@ export const createBaseQuery = (path = '') => {
         );
 
         if (refreshResult.data) {
-          const data = refreshResult.data as { data?: { accessToken?: string } };
-          const newAccessToken = data?.data?.accessToken;
-          if (newAccessToken && typeof window !== 'undefined') {
-            localStorage.setItem('accessToken', newAccessToken);
-            document.cookie = `accessToken=${newAccessToken}; path=/; max-age=${AUTH_COOKIE_MAX_AGE}; SameSite=Lax`;
-          }
-          // Retry original query with updated headers
+          // The backend successfully refreshed and set new HttpOnly cookies.
+          // Retry original query.
           result = await rawBaseQuery(args, api, extraOptions);
-        } else {
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('accessToken');
-            document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
-          }
         }
       }
     }

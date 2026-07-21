@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service';
 import { ApiResponse } from '../utils/ApiResponse';
 import { env } from '../config/env';
-import { refreshTokenCookieOptions } from '../config/cookies';
+import { refreshTokenCookieOptions, accessTokenCookieOptions } from '../config/cookies';
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -12,6 +12,7 @@ export class AuthController {
       const { admin, accessToken, refreshToken } = await AuthService.login(email, password);
       
       res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions(env));
+      res.cookie('accessToken', accessToken, accessTokenCookieOptions(env));
 
       res.json(ApiResponse.success({ admin, accessToken }, 'Login successful'));
     } catch (error) {
@@ -30,6 +31,7 @@ export class AuthController {
       const { accessToken, refreshToken: newRefreshToken } = await AuthService.refresh(refreshToken);
       
       res.cookie('refreshToken', newRefreshToken, refreshTokenCookieOptions(env));
+      res.cookie('accessToken', accessToken, accessTokenCookieOptions(env));
 
       res.json(ApiResponse.success({ accessToken }, 'Token refreshed'));
     } catch (error) {
@@ -48,6 +50,7 @@ export class AuthController {
 
   static async logout(_req: Request, res: Response) {
     res.clearCookie('refreshToken', refreshTokenCookieOptions(env));
+    res.clearCookie('accessToken', accessTokenCookieOptions(env));
     res.json(ApiResponse.success(null, 'Logged out successfully'));
   }
 }

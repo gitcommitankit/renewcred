@@ -2,18 +2,33 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAppSelector } from '@/hooks/useRedux';
+import { useAppSelector, useAppDispatch } from '@/hooks/useRedux';
+import { useGetMeQuery } from '@/store/api/authApi';
+import { setCredentials, clearCredentials } from '@/store/slices/authSlice';
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAppSelector(
-    (s: { auth: { isAuthenticated: boolean; isLoading: boolean } }) => s.auth
-  );
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, isLoading: isReduxLoading } = useAppSelector((s) => s.auth);
   const [isMounted, setIsMounted] = useState(false);
+
+  // Automatically hit the backend to check if our HttpOnly cookies are valid
+  const { data: meData, error, isLoading: isQueryLoading } = useGetMeQuery();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    // If we get a valid response, set the user as authenticated
+    if (meData?.data) {
+      dispatch(setCredentials({ admin: meData.data, accessToken: '' }));
+    } else if (error) {
+      dispatch(clearCredentials());
+    }
+  }, [meData, error, dispatch]);
+
+  const isLoading = isReduxLoading || isQueryLoading;
 
   useEffect(() => {
     if (isMounted && !isLoading && !isAuthenticated) {
