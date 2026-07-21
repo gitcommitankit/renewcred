@@ -1,6 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import type { Standard, ApiResponse, CreateStandardInput, UpdateStandardInput } from '@/types';
 import { createBaseQuery } from './baseQuery';
+import { revalidatePublicPaths } from '@/lib/revalidate';
 
 export const standardsApi = createApi({
   reducerPath: 'standardsApi',
@@ -28,6 +29,13 @@ export const standardsApi = createApi({
         { type: 'Standard', id: 'LIST' },
         { type: 'Standard', id: 'ADMIN_LIST' },
       ],
+      async onQueryStarted(arg, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          // New standard on the list page
+          await revalidatePublicPaths(['/standards']);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
     updateStandard: builder.mutation<
@@ -44,10 +52,19 @@ export const standardsApi = createApi({
         { type: 'Standard', id: 'LIST' },
         { type: 'Standard', id: 'ADMIN_LIST' },
       ],
+      async onQueryStarted(_arg, { queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const slug = data?.data?.slug;
+          const paths = ['/standards'];
+          if (slug) paths.push(`/standards/${slug}`);
+          await revalidatePublicPaths(paths);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
-    deleteStandard: builder.mutation<ApiResponse<null>, string>({
-      query: (id) => ({
+    deleteStandard: builder.mutation<ApiResponse<null>, { id: string; slug: string }>({
+      query: ({ id }) => ({
         url: `/admin/standards/${id}`,
         method: 'DELETE',
       }),
@@ -55,6 +72,12 @@ export const standardsApi = createApi({
         { type: 'Standard', id: 'LIST' },
         { type: 'Standard', id: 'ADMIN_LIST' },
       ],
+      async onQueryStarted({ slug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths(['/standards', `/standards/${slug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
   }),
 });

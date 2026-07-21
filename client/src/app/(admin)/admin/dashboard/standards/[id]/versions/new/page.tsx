@@ -50,7 +50,7 @@ export default function NewVersionPage() {
     e.preventDefault();
     if (!form.versionLabel.trim() || !form.slug.trim()) { toast.error('Label and slug are required'); return; }
     try {
-      const result = await createVersion({ standardId: params.id, data: form }).unwrap();
+      const result = await createVersion({ standardId: params.id, data: form, standardSlug: standardData?.data?.slug ?? '' }).unwrap();
       toast.success('Version created!');
       router.push(`/admin/dashboard/standards/${params.id}/versions/${result.data.id}`);
     } catch (err: unknown) {
