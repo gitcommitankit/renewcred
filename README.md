@@ -108,15 +108,12 @@ docker compose exec server npx prisma db seed
 cp .env.example .env
 pnpm install
 
-# 2. Start the backend
-cd server
+# 2. Run migrations and seed data
 pnpm db:migrate    # Run migrations
 pnpm db:seed       # Seed sample data
-pnpm dev           # http://localhost:4000
 
-# 3. Start the frontend (new terminal)
-cd client
-pnpm dev           # http://localhost:3000
+# 3. Start the full application
+pnpm dev           # Starts both backend (4000) and frontend (3000)
 ```
 
 ### Root-level Scripts
