@@ -31,10 +31,10 @@ export function useAuth() {
           accessToken,
         })
       );
-      router.push(callbackUrl || '/admin/dashboard');
+      window.location.assign(callbackUrl || '/admin/dashboard');
       return result;
     },
-    [loginMutation, dispatch, router]
+    [loginMutation, dispatch]
   );
 
   const logout = useCallback(async () => {
@@ -49,9 +49,9 @@ export function useAuth() {
         document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Lax';
       }
       dispatch(clearCredentials());
-      router.push('/admin/login');
+      window.location.assign('/admin/login');
     }
-  }, [logoutMutation, dispatch, router]);
+  }, [logoutMutation, dispatch]);
 
   return {
     admin,
