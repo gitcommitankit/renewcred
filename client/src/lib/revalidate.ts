@@ -23,13 +23,19 @@ export async function revalidatePublicPaths(paths: string[]): Promise<void> {
       }
     }
 
-    await fetch('/api/revalidate', {
+    const res = await fetch('/api/revalidate', {
       method: 'POST',
       headers,
       credentials: 'include',
       body: JSON.stringify({ paths }),
     });
-  } catch {
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      console.error('Cache busting failed:', errorData);
+    }
+  } catch (error) {
+    console.error('Failed to contact revalidation endpoint:', error);
     // Intentionally swallowed — revalidation failure is non-fatal.
     // The ISR safety net (revalidate: 3600) will cover it.
   }
