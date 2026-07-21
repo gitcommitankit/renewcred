@@ -41,13 +41,16 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 expressjs
 
-# Copy built dist, prisma client and runtime node_modules
-COPY --from=builder /app/server/dist ./dist
-COPY --from=builder /app/server/node_modules ./node_modules
-COPY --from=builder /app/server/package.json ./package.json
-COPY --from=builder /app/server/prisma ./prisma
+# Copy root node_modules (which contains .pnpm store) and server node_modules/dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/server/node_modules ./server/node_modules
+COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/server/package.json ./server/package.json
+COPY --from=builder /app/server/prisma ./server/prisma
 
 USER expressjs
+
+WORKDIR /app/server
 
 EXPOSE 4000
 
