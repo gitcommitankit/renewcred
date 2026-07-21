@@ -6,7 +6,7 @@ A production-ready Content Management System for authoring and publishing climat
 
 ## Features
 
-- **Admin Authentication** — JWT access tokens + HttpOnly cookie refresh tokens with silent refresh
+- **Admin Authentication** — Secure `HttpOnly` cookies for both JWT access tokens and refresh tokens
 - **Standards Management** — CRUD for climate standards with publish/draft toggle and sort ordering
 - **Version Lifecycle** — `DRAFT → PUBLIC_CONSULTATION → CERTIFIED` workflow with `isLatest` flag
 - **Rich Content Editor** — Tiptap editor with nested lists, tables, code blocks, and LaTeX math (KaTeX)
@@ -141,7 +141,6 @@ DATABASE_URL=postgresql://user:password@host:5432/dbname?schema=public
 
 # Server
 SERVER_PORT=4000
-NODE_ENV=development
 
 # JWT (use long random strings in production)
 JWT_ACCESS_SECRET=your-access-secret
@@ -239,7 +238,7 @@ The seed script creates sample standards (Electric Vehicles, Biochar, Renewable 
 
 | Decision | Rationale |
 |---|---|
-| HttpOnly cookie for refresh token | Prevents XSS from reading long-lived tokens |
+| HttpOnly cookies for Auth tokens | Prevents XSS from reading access and refresh tokens |
 | JSON content field for sections | Schema-agnostic — rich content evolves without DB migrations |
 | `isLatest` flag + `$transaction` | Ensures exactly one latest version per standard atomically |
 | ISR on public pages | Near-real-time updates without sacrificing static generation performance |
