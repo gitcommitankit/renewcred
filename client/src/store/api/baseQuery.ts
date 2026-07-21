@@ -1,10 +1,17 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
+import { API_URL, AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
 
 export const createBaseQuery = (path = '') => {
   const rawBaseQuery = fetchBaseQuery({
-    baseUrl: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}${path}`,
+    baseUrl: `${API_URL}${path}`,
     credentials: 'include',
+    prepareHeaders: (headers) => {
+      const token = typeof window !== 'undefined'
+        ? localStorage.getItem('accessToken')
+        : null;
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      return headers;
+    },
   });
 
   const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
@@ -18,7 +25,7 @@ export const createBaseQuery = (path = '') => {
       const url = typeof args === 'string' ? args : args.url;
       if (!url.includes('/login') && !url.includes('/refresh')) {
         const refreshBaseQuery = fetchBaseQuery({
-          baseUrl: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/auth`,
+          baseUrl: `${API_URL}/auth`,
           credentials: 'include',
         });
 

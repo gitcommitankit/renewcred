@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from '@/lib/constants';
 
 /**
  * ARCHITECTURE NOTE: Dual-Client Pattern
@@ -14,10 +15,8 @@ import axios from 'axios';
  * Do NOT use this client for general API requests (GET/POST for standards, versions, etc.).
  * Always use the generated RTK Query hooks (e.g., `useGetAllStandardsQuery`).
  */
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
-
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

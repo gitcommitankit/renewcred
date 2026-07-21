@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import type { Standard } from '@/types';
+import { API_URL } from '@/lib/constants';
 
 export const metadata: Metadata = {
   title: 'Standards',
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 async function getStandards(): Promise<Standard[]> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/standards`,
+      `${API_URL}/standards`,
       { next: { tags: ['standards-list'], revalidate: 3600 } }
     );
     if (!res.ok) return [];

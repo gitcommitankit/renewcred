@@ -235,12 +235,12 @@ async function main() {
     const prefix = standard.slug === 'renewable-energy' ? 'renewable' : standard.slug;
 
     // ---- Create versions ----
-    // Version 1: Public consultation
+    // Version 1: Public consultation (Draft/Consultation)
     const publicConsultation = await prisma.version.create({
       data: {
         standardId: standard.id,
-        versionLabel: 'v1.0.0',
-        slug: 'v1-0-0',
+        versionLabel: 'v0.9.0',
+        slug: 'v0-9-0',
         status: VersionStatus.PUBLIC_CONSULTATION,
         consultationStartDate: new Date('2025-05-12'),
         consultationEndDate: new Date('2025-07-12'),

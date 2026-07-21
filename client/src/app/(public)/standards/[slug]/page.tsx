@@ -5,8 +5,7 @@ import { Link2 } from 'lucide-react';
 import StandardSidebar from '@/components/public/StandardSidebar';
 import TiptapRenderer from '@/components/public/TiptapRenderer';
 import type { Standard, Version, Section, VersionSummary } from '@/types';
-
-const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
+import { API_URL } from '@/lib/constants';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -14,7 +13,7 @@ interface Props {
 
 async function getStandard(slug: string): Promise<Standard | null> {
   try {
-    const res = await fetch(`${API}/standards/${slug}`, { next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}`, { next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
@@ -23,7 +22,7 @@ async function getStandard(slug: string): Promise<Standard | null> {
 
 async function getVersions(slug: string): Promise<VersionSummary[]> {
   try {
-    const res = await fetch(`${API}/standards/${slug}/versions`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}/versions`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
@@ -32,7 +31,7 @@ async function getVersions(slug: string): Promise<VersionSummary[]> {
 
 async function getLatestVersion(slug: string): Promise<Version | null> {
   try {
-    const res = await fetch(`${API}/standards/${slug}/versions/latest`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}/versions/latest`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
