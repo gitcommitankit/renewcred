@@ -1,15 +1,21 @@
 import type { CookieOptions } from 'express';
 
-export const refreshTokenCookieOptions = (env: { NODE_ENV: string }): CookieOptions => ({
+interface CookieEnv {
+  NODE_ENV: string;
+}
+
+const isProduction = (env: CookieEnv) => env.NODE_ENV === 'production';
+
+export const refreshTokenCookieOptions = (env: CookieEnv): CookieOptions => ({
   httpOnly: true,
-  secure: env.NODE_ENV === 'production',
-  sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+  secure: isProduction(env),
+  sameSite: isProduction(env) ? 'none' : 'lax',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 });
 
-export const accessTokenCookieOptions = (env: { NODE_ENV: string }): CookieOptions => ({
+export const accessTokenCookieOptions = (env: CookieEnv): CookieOptions => ({
   httpOnly: true,
-  secure: env.NODE_ENV === 'production',
-  sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+  secure: isProduction(env),
+  sameSite: isProduction(env) ? 'none' : 'lax',
   maxAge: 15 * 60 * 1000, // 15 minutes
 });
