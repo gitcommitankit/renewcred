@@ -11,6 +11,9 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 
 const app: express.Application = express();
 
+// Trust reverse proxies (Nginx, Render, Railway, AWS ELB) so secure cookies work
+app.set("trust proxy", 1);
+
 // ---- Security ----
 app.use(helmet());
 app.use(

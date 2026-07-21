@@ -7,6 +7,8 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy workspace config and lockfile from monorepo root
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY client/package.json ./client/
+# Copy prisma schema so root postinstall hook succeeds
+COPY server/prisma/ ./server/prisma/
 
 RUN pnpm install --frozen-lockfile --filter client
 

@@ -8,8 +8,9 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy workspace config and lockfile from monorepo root
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 
-# Copy only the server package.json so pnpm can resolve deps
+# Copy only the server package.json and prisma schema so pnpm can resolve deps and run postinstall
 COPY server/package.json ./server/
+COPY server/prisma/ ./server/prisma/
 
 # Install only server dependencies (no --filter to avoid workspace resolution issues)
 RUN pnpm install --frozen-lockfile --filter server
