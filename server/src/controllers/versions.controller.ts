@@ -7,7 +7,6 @@ export class VersionsController {
 
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
-      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       const version = await VersionsService.getBySlug(req.params.slug as string, req.params.versionSlug as string);
       res.json(ApiResponse.success(version));
     } catch (error) {
@@ -17,7 +16,6 @@ export class VersionsController {
 
   static async getLatest(req: Request, res: Response, next: NextFunction) {
     try {
-      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
       const version = await VersionsService.getLatest(req.params.slug as string);
       res.json(ApiResponse.success(version));
     } catch (error) {

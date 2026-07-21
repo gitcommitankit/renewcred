@@ -27,7 +27,7 @@ export default function VersionsListPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteVersion({ id: deleteTarget.id, standardSlug: standard?.slug ?? '' }).unwrap();
+      await deleteVersion({ id: deleteTarget.id, standardSlug: standard?.slug ?? '', versionSlug: deleteTarget.slug }).unwrap();
       toast.success('Version deleted');
       setDeleteTarget(null);
     } catch {

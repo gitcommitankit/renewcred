@@ -229,7 +229,7 @@ export default function VersionEditorPage() {
     const { title, content } = splitEditorContent(editorContent);
     if (!title.trim()) return;
     try {
-      await updateSection({ id: activeSectionId, versionId: params.versionId, data: { content, title }, standardSlug: version?.standard?.slug ?? '' }).unwrap();
+      await updateSection({ id: activeSectionId, versionId: params.versionId, data: { content, title }, standardSlug: version?.standard?.slug ?? '', versionSlug: version?.slug ?? '' }).unwrap();
       toast.success('Saved!');
     } catch {
       toast.error('Failed to save');
@@ -260,6 +260,7 @@ export default function VersionEditorPage() {
       const result = await createSection({
         versionId: params.versionId,
         standardSlug: version?.standard?.slug ?? '',
+        versionSlug: version?.slug ?? '',
         data: {
           number: generatedNumber,
           title: newSection.title,
@@ -283,7 +284,7 @@ export default function VersionEditorPage() {
   const handleDeleteSection = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteSection({ id: deleteTarget.id, versionId: params.versionId, standardSlug: version?.standard?.slug ?? '' }).unwrap();
+      await deleteSection({ id: deleteTarget.id, versionId: params.versionId, standardSlug: version?.standard?.slug ?? '', versionSlug: version?.slug ?? '' }).unwrap();
       toast.success('Section deleted');
       if (activeSectionId === deleteTarget.id) {
         setActiveSectionId(null);
@@ -333,7 +334,7 @@ export default function VersionEditorPage() {
     }));
 
     try {
-      await reorderSections({ versionId: params.versionId, sections: payload, standardSlug: version?.standard?.slug ?? '' }).unwrap();
+      await reorderSections({ versionId: params.versionId, sections: payload, standardSlug: version?.standard?.slug ?? '', versionSlug: version?.slug ?? '' }).unwrap();
     } catch {
       toast.error('Failed to reorder sections');
     }

@@ -13,6 +13,15 @@ import type {
 } from '@/types';
 import { revalidatePublicPaths } from '@/lib/revalidate';
 
+async function revalidateVersionPaths({standardSlug, versionSlug, includeList = false }: {standardSlug: string, versionSlug?: string, includeList?: boolean}) {
+  const paths = includeList ? ['/standards'] : [];
+  paths.push(`/standards/${standardSlug}`);
+  if (versionSlug) {
+    paths.push(`/standards/${standardSlug}/${versionSlug}`);
+  }
+  await revalidatePublicPaths(paths);
+}
+
 export const versionsApi = createApi({
   reducerPath: 'versionsApi',
   baseQuery: createBaseQuery(),
@@ -39,11 +48,14 @@ export const versionsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: [{ type: 'Version', id: 'LIST' }],
+      invalidatesTags: (_result, _error, { standardSlug }) => [
+        { type: 'Version', id: `LIST-${standardSlug}` },
+      ],
       async onQueryStarted({ standardSlug }, { queryFulfilled }) {
         try {
-          await queryFulfilled;
-          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+          const { data: res } = await queryFulfilled;
+          const versionSlug = res?.data?.slug;
+          await revalidateVersionPaths({ standardSlug, versionSlug, includeList: true });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
@@ -57,28 +69,38 @@ export const versionsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id }) => [
+      invalidatesTags: (_result, _error, { id, standardSlug }) => [
         { type: 'Version', id },
-        { type: 'Version', id: 'LIST' },
+        { type: 'Version', id: `LIST-${standardSlug}` },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardSlug, data: inputData }, { queryFulfilled }) {
         try {
-          await queryFulfilled;
-          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+          const { data: res } = await queryFulfilled;
+          const versionSlug = res?.data?.slug;
+          const paths = ['/standards', `/standards/${standardSlug}`];
+          if (versionSlug) {
+            paths.push(`/standards/${standardSlug}/${versionSlug}`);
+          }
+          if (inputData.slug && inputData.slug !== versionSlug) {
+            paths.push(`/standards/${standardSlug}/${inputData.slug}`);
+          }
+          await revalidatePublicPaths(paths);
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
 
-    deleteVersion: builder.mutation<ApiResponse<null>, { id: string; standardSlug: string }>({
+    deleteVersion: builder.mutation<ApiResponse<null>, { id: string; standardSlug: string; versionSlug: string }>({
       query: ({ id }) => ({
         url: `/admin/versions/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [{ type: 'Version', id: 'LIST' }],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      invalidatesTags: (_result, _error, { standardSlug }) => [
+        { type: 'Version', id: `LIST-${standardSlug}` },
+      ],
+      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+          await revalidateVersionPaths({ standardSlug, versionSlug, includeList: true });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
@@ -86,7 +108,7 @@ export const versionsApi = createApi({
     // ---- Admin Sections ----
     createSection: builder.mutation<
       ApiResponse<Section>,
-      { versionId: string; data: CreateSectionInput; standardSlug: string }
+      { versionId: string; data: CreateSectionInput; standardSlug: string; versionSlug: string }
     >({
       query: ({ versionId, data }) => ({
         url: `/admin/versions/${versionId}/sections`,
@@ -97,17 +119,17 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+          await revalidateVersionPaths({ standardSlug, versionSlug });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
 
     updateSection: builder.mutation<
       ApiResponse<Section>,
-      { id: string; versionId: string; data: UpdateSectionInput; standardSlug: string }
+      { id: string; versionId: string; data: UpdateSectionInput; standardSlug: string; versionSlug: string }
     >({
       query: ({ id, data }) => ({
         url: `/admin/sections/${id}`,
@@ -120,10 +142,10 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Section', id },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+          await revalidateVersionPaths({ standardSlug, versionSlug });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
@@ -146,7 +168,7 @@ export const versionsApi = createApi({
       // Intentionally no onQueryStarted — auto-saves must not bust the ISR cache.
     }),
 
-    deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string; standardSlug: string }>({
+    deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string; standardSlug: string; versionSlug: string }>({
       query: ({ id }) => ({
         url: `/admin/sections/${id}`,
         method: 'DELETE',
@@ -155,17 +177,17 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+          await revalidateVersionPaths({ standardSlug, versionSlug });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
 
     reorderSections: builder.mutation<
       ApiResponse<null>,
-      { versionId: string; sections: Array<ReorderSectionItem & { number: string }>; standardSlug: string }
+      { versionId: string; sections: Array<ReorderSectionItem & { number: string }>; standardSlug: string; versionSlug: string }
     >({
       query: ({ versionId, sections }) => ({
         url: `/admin/versions/${versionId}/sections/reorder`,
@@ -176,10 +198,10 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+          await revalidateVersionPaths({ standardSlug, versionSlug });
         } catch { /* mutation failed — nothing to revalidate */ }
       },
     }),
