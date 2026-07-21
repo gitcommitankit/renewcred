@@ -6,10 +6,10 @@
 
 */
 -- DropTable
-DROP TABLE "pages";
+DROP TABLE IF EXISTS "pages";
 
 -- DropTable
-DROP TABLE "site_settings";
+DROP TABLE IF EXISTS "site_settings";
 
 -- CreateIndex
 CREATE INDEX "sections_version_id_sort_order_idx" ON "sections"("version_id", "sort_order");
