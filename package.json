@@ -4,18 +4,21 @@
   "packageManager": "pnpm@10.29.3",
   "description": "RenewCred CMS - Content Management System for climate standards",
   "scripts": {
-    "dev": "pnpm --parallel --filter client --filter server dev",
-    "dev:client": "pnpm --filter client dev",
-    "dev:server": "pnpm --filter server dev",
-    "build": "pnpm --filter server build && pnpm --filter client build",
-    "build:client": "pnpm --filter client build",
-    "build:server": "pnpm --filter server build",
-    "db:migrate": "pnpm --filter server db:migrate",
-    "db:migrate:prod": "pnpm --filter server db:migrate:prod",
-    "db:generate": "pnpm --filter server db:generate",
-    "db:seed": "pnpm --filter server db:seed",
-    "db:studio": "pnpm --filter server db:studio",
-    "db:reset": "pnpm --filter server db:reset",
+    "dev": "dotenv -e .env -- pnpm --parallel --filter server --filter client dev",
+    "dev:client": "dotenv -e .env -- pnpm --filter client dev",
+    "dev:server": "dotenv -e .env -- pnpm --filter server dev",
+    "build": "dotenv -e .env -- pnpm --filter server build && dotenv -e .env -- pnpm --filter client build",
+    "build:client": "dotenv -e .env -- pnpm --filter client build",
+    "build:server": "dotenv -e .env -- pnpm --filter server build",
+    "start": "dotenv -e .env -- pnpm --parallel --filter server --filter client start",
+    "start:client": "dotenv -e .env -- pnpm --filter client start",
+    "start:server": "dotenv -e .env -- pnpm --filter server start",
+    "db:migrate": "dotenv -e .env -- pnpm --filter server db:migrate",
+    "db:migrate:prod": "dotenv -e .env -- pnpm --filter server db:migrate:prod",
+    "db:generate": "dotenv -e .env -- pnpm --filter server db:generate",
+    "db:seed": "dotenv -e .env -- pnpm --filter server db:seed",
+    "db:studio": "dotenv -e .env -- pnpm --filter server db:studio",
+    "db:reset": "dotenv -e .env -- pnpm --filter server db:reset",
     "postinstall": "pnpm --filter server db:generate"
   },
   "engines": {
@@ -31,5 +34,8 @@
       "sharp",
       "unrs-resolver"
     ]
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0"
   }
 }
