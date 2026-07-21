@@ -29,7 +29,7 @@ export default function StandardsListPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteStandard(deleteTarget.id).unwrap();
+      await deleteStandard({ id: deleteTarget.id, slug: deleteTarget.slug }).unwrap();
       toast.success(`"${deleteTarget.title}" deleted`);
       setDeleteTarget(null);
     } catch {

@@ -31,6 +31,7 @@ import {
   useDeleteSectionMutation,
   useGetVersionByIdQuery,
   useUpdateSectionMutation,
+  useAutoSaveSectionMutation,
   useReorderSectionsMutation,
 } from '@/store/api/versionsApi';
 
@@ -38,7 +39,6 @@ function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
-// Sortable tree item
 function SortableTreeItem({
   section,
   allSections,
@@ -135,13 +135,13 @@ function SortableTreeItem({
   );
 }
 
-// Main editor page
 export default function VersionEditorPage() {
   const params = useParams<{ id: string; versionId: string }>();
 
   const { data: versionData, isLoading: versionLoading } = useGetVersionByIdQuery(params.versionId);
   const [createSection, { isLoading: isCreating }] = useCreateSectionMutation();
   const [updateSection, { isLoading: isSaving }] = useUpdateSectionMutation();
+  const [autoSaveSection] = useAutoSaveSectionMutation();
   const [deleteSection, { isLoading: isDeleting }] = useDeleteSectionMutation();
   const [reorderSections] = useReorderSectionsMutation();
 
@@ -157,7 +157,6 @@ export default function VersionEditorPage() {
   const [showNewSection, setShowNewSection] = useState(false);
   const [newSection, setNewSection] = useState({ title: '', parentId: '' });
 
-  // Build the content sent INTO the editor
   const buildEditorContent = useCallback((section: Section): TiptapDocument => {
     const base = section.content as TiptapDocument | null;
     const bodyNodes = base?.content ?? [];
@@ -170,7 +169,6 @@ export default function VersionEditorPage() {
     };
   }, []);
 
-  // Extract title and body back out of the editor content before saving
   const splitEditorContent = useCallback((doc: TiptapDocument): { title: string; content: TiptapDocument } => {
     const nodes = doc.content ?? [];
     const [first, ...rest] = nodes;
@@ -184,7 +182,6 @@ export default function VersionEditorPage() {
     };
   }, []);
 
-  // Auto-select first section on initial load only
   useEffect(() => {
     if (allSections.length > 0 && !activeSectionId) {
       const first = allSections[0];
@@ -194,7 +191,6 @@ export default function VersionEditorPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!allSections.length]);
 
-  // Clear active section if it was deleted (e.g., as a child of a deleted parent)
   useEffect(() => {
     if (activeSectionId && allSections.length > 0) {
       const stillExists = allSections.some((s) => s.id === activeSectionId);
@@ -209,19 +205,17 @@ export default function VersionEditorPage() {
   const handleSelectSection = (section: Section) => {
     setActiveSectionId(section.id);
     setEditorContent(buildEditorContent(section));
-    // Force re-mount the editor so it cleanly loads the new content
     setEditorKey((k) => k + 1);
   };
 
-  // Debounced auto-save
   const debouncedContent = useDebounce(editorContent, 1500);
 
   const doSave = useCallback(async (doc: TiptapDocument, sectionId: string) => {
     const { title, content } = splitEditorContent(doc);
     try {
-      await updateSection({ id: sectionId, versionId: params.versionId, data: { content, title } }).unwrap();
+      await autoSaveSection({ id: sectionId, versionId: params.versionId, data: { content, title } }).unwrap();
     } catch { /* silent on auto-save */ }
-  }, [updateSection, params.versionId, splitEditorContent]);
+  }, [autoSaveSection, params.versionId, splitEditorContent]);
 
   useEffect(() => {
     if (debouncedContent && activeSectionId) {
@@ -235,7 +229,7 @@ export default function VersionEditorPage() {
     const { title, content } = splitEditorContent(editorContent);
     if (!title.trim()) return;
     try {
-      await updateSection({ id: activeSectionId, versionId: params.versionId, data: { content, title } }).unwrap();
+      await updateSection({ id: activeSectionId, versionId: params.versionId, data: { content, title }, standardSlug: version?.standard?.slug ?? '' }).unwrap();
       toast.success('Saved!');
     } catch {
       toast.error('Failed to save');
@@ -249,12 +243,9 @@ export default function VersionEditorPage() {
     }
     try {
       const selectedParentId = newSection.parentId || null;
-
-      // Calculate sortOrder: put it after the last sibling with the same parent
       const siblings = allSections.filter((s) => s.parentId === selectedParentId);
       const sortOrder = siblings.length > 0 ? Math.max(...siblings.map((s) => s.sortOrder)) + 1 : allSections.length;
 
-      // Auto-compute number based on parent and sibling position
       let generatedNumber = '';
       if (!selectedParentId) {
         generatedNumber = `${siblings.length + 1}.0`;
@@ -268,6 +259,7 @@ export default function VersionEditorPage() {
 
       const result = await createSection({
         versionId: params.versionId,
+        standardSlug: version?.standard?.slug ?? '',
         data: {
           number: generatedNumber,
           title: newSection.title,
@@ -291,7 +283,7 @@ export default function VersionEditorPage() {
   const handleDeleteSection = async () => {
     if (!deleteTarget) return;
     try {
-      await deleteSection({ id: deleteTarget.id, versionId: params.versionId }).unwrap();
+      await deleteSection({ id: deleteTarget.id, versionId: params.versionId, standardSlug: version?.standard?.slug ?? '' }).unwrap();
       toast.success('Section deleted');
       if (activeSectionId === deleteTarget.id) {
         setActiveSectionId(null);
@@ -304,10 +296,8 @@ export default function VersionEditorPage() {
     }
   };
 
-  // DnD sensors
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
-  // Recursively walk the reordered flat list and compute hierarchical numbers
   const computeNumbers = (sections: Section[], parentId: string | null, prefix: string): Map<string, string> => {
     const result = new Map<string, string>();
     const siblings = sections.filter((s) => s.parentId === parentId);
@@ -329,12 +319,10 @@ export default function VersionEditorPage() {
     const newIndex = allSections.findIndex((s) => s.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
 
-    // Rebuild order locally
     const reordered = [...allSections];
     const [moved] = reordered.splice(oldIndex, 1);
     reordered.splice(newIndex, 0, moved);
 
-    // Compute new hierarchical numbers for all sections
     const numbers = computeNumbers(reordered, null, '');
 
     const payload = reordered.map((s, i) => ({
@@ -345,7 +333,7 @@ export default function VersionEditorPage() {
     }));
 
     try {
-      await reorderSections({ versionId: params.versionId, sections: payload }).unwrap();
+      await reorderSections({ versionId: params.versionId, sections: payload, standardSlug: version?.standard?.slug ?? '' }).unwrap();
     } catch {
       toast.error('Failed to reorder sections');
     }
@@ -361,7 +349,6 @@ export default function VersionEditorPage() {
 
   return (
     <div className="flex flex-col -m-6 h-dashboard md:h-dashboard">
-      {/* Top sub-bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-warm-gray-200 shrink-0">
         <div className="flex items-center gap-3">
           <Link href={`/admin/dashboard/standards/${params.id}/versions`} className="flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 transition-colors">
@@ -388,10 +375,7 @@ export default function VersionEditorPage() {
         </div>
       </div>
 
-      {/* Split content area */}
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-
-        {/* Left: Section Tree */}
         <div className="w-full md:w-64 flex flex-col bg-white border-b md:border-b-0 md:border-r border-warm-gray-200 overflow-y-auto shrink-0 md:max-h-full max-h-40vh">
           <div className="flex items-center justify-between px-3 py-3 border-b border-warm-gray-200">
             <span className="text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">Sections</span>
@@ -400,7 +384,6 @@ export default function VersionEditorPage() {
             </button>
           </div>
 
-          {/* New section inline form */}
           {showNewSection && (
             <div className="p-3 border-b border-warm-gray-200 bg-warm-gray-100 flex flex-col gap-2">
 
@@ -432,7 +415,6 @@ export default function VersionEditorPage() {
             </div>
           )}
 
-          {/* Drag-and-drop section tree */}
           <div className="flex-1 py-2 px-1">
             {allSections.length === 0 ? (
               <p className="text-xs text-warm-gray-500 text-center py-6 px-3">No sections yet. Click + to add one.</p>
@@ -455,7 +437,6 @@ export default function VersionEditorPage() {
           </div>
         </div>
 
-        {/* Right: Tiptap editor */}
         <div className="flex-1 overflow-y-auto p-6 bg-warm-gray-100">
           {!activeSection ? (
             <div className="flex items-center justify-center h-full text-sm text-warm-gray-500">

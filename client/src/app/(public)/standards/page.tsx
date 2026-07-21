@@ -13,7 +13,7 @@ async function getStandards(): Promise<Standard[]> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/standards`,
-      { next: { revalidate: 60 } }
+      { next: { tags: ['standards-list'], revalidate: 3600 } }
     );
     if (!res.ok) return [];
     const data = await res.json();

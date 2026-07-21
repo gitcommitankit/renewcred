@@ -11,6 +11,7 @@ import type {
   UpdateSectionInput,
   ReorderSectionItem,
 } from '@/types';
+import { revalidatePublicPaths } from '@/lib/revalidate';
 
 export const versionsApi = createApi({
   reducerPath: 'versionsApi',
@@ -31,7 +32,7 @@ export const versionsApi = createApi({
 
     createVersion: builder.mutation<
       ApiResponse<Version>,
-      { standardId: string; data: CreateVersionInput }
+      { standardId: string; data: CreateVersionInput; standardSlug: string }
     >({
       query: ({ standardId, data }) => ({
         url: `/admin/standards/${standardId}/versions`,
@@ -39,11 +40,17 @@ export const versionsApi = createApi({
         body: data,
       }),
       invalidatesTags: [{ type: 'Version', id: 'LIST' }],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
     updateVersion: builder.mutation<
       ApiResponse<Version>,
-      { id: string; data: UpdateVersionInput }
+      { id: string; data: UpdateVersionInput; standardSlug: string }
     >({
       query: ({ id, data }) => ({
         url: `/admin/versions/${id}`,
@@ -54,20 +61,32 @@ export const versionsApi = createApi({
         { type: 'Version', id },
         { type: 'Version', id: 'LIST' },
       ],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
-    deleteVersion: builder.mutation<ApiResponse<null>, string>({
-      query: (id) => ({
+    deleteVersion: builder.mutation<ApiResponse<null>, { id: string; standardSlug: string }>({
+      query: ({ id }) => ({
         url: `/admin/versions/${id}`,
         method: 'DELETE',
       }),
       invalidatesTags: [{ type: 'Version', id: 'LIST' }],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths(['/standards', `/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
     // ---- Admin Sections ----
     createSection: builder.mutation<
       ApiResponse<Section>,
-      { versionId: string; data: CreateSectionInput }
+      { versionId: string; data: CreateSectionInput; standardSlug: string }
     >({
       query: ({ versionId, data }) => ({
         url: `/admin/versions/${versionId}/sections`,
@@ -78,11 +97,17 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
     updateSection: builder.mutation<
       ApiResponse<Section>,
-      { id: string; versionId: string; data: UpdateSectionInput }
+      { id: string; versionId: string; data: UpdateSectionInput; standardSlug: string }
     >({
       query: ({ id, data }) => ({
         url: `/admin/sections/${id}`,
@@ -95,9 +120,33 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Section', id },
       ],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
-    deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string }>({
+    // Silent auto-save — same API call as updateSection but no ISR revalidation.
+    // Revalidation on every debounced keystroke would hammer the cache unnecessarily;
+    // the manual Save button (which calls updateSection) is what busts the cache.
+    autoSaveSection: builder.mutation<
+      ApiResponse<Section>,
+      { id: string; versionId: string; data: UpdateSectionInput }
+    >({
+      query: ({ id, data }) => ({
+        url: `/admin/sections/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Section', id },
+      ],
+      // Intentionally no onQueryStarted — auto-saves must not bust the ISR cache.
+    }),
+
+    deleteSection: builder.mutation<ApiResponse<null>, { id: string; versionId: string; standardSlug: string }>({
       query: ({ id }) => ({
         url: `/admin/sections/${id}`,
         method: 'DELETE',
@@ -106,11 +155,17 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
 
     reorderSections: builder.mutation<
       ApiResponse<null>,
-      { versionId: string; sections: Array<ReorderSectionItem & { number: string }> }
+      { versionId: string; sections: Array<ReorderSectionItem & { number: string }>; standardSlug: string }
     >({
       query: ({ versionId, sections }) => ({
         url: `/admin/versions/${versionId}/sections/reorder`,
@@ -121,6 +176,12 @@ export const versionsApi = createApi({
       invalidatesTags: (_result, _error, { versionId }) => [
         { type: 'Version', id: versionId },
       ],
+      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          await revalidatePublicPaths([`/standards/${standardSlug}`]);
+        } catch { /* mutation failed — nothing to revalidate */ }
+      },
     }),
   }),
 });
@@ -132,6 +193,7 @@ export const {
   useDeleteVersionMutation,
   useCreateSectionMutation,
   useUpdateSectionMutation,
+  useAutoSaveSectionMutation,
   useDeleteSectionMutation,
   useReorderSectionsMutation,
 } = versionsApi;

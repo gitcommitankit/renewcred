@@ -14,7 +14,7 @@ interface Props {
 
 async function getStandard(slug: string): Promise<Standard | null> {
   try {
-    const res = await fetch(`${API}/standards/${slug}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/standards/${slug}`, { next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
@@ -23,7 +23,7 @@ async function getStandard(slug: string): Promise<Standard | null> {
 
 async function getVersions(slug: string): Promise<VersionSummary[]> {
   try {
-    const res = await fetch(`${API}/standards/${slug}/versions`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/standards/${slug}/versions`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
@@ -32,7 +32,7 @@ async function getVersions(slug: string): Promise<VersionSummary[]> {
 
 async function getLatestVersion(slug: string): Promise<Version | null> {
   try {
-    const res = await fetch(`${API}/standards/${slug}/versions/latest`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API}/standards/${slug}/versions/latest`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
