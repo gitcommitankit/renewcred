@@ -1,5 +1,5 @@
 services:
-  # ---- PostgreSQL Database ----
+  # PostgreSQL Database
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -17,7 +17,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ---- Express.js API Server ----
+  # Express.js API Server
   server:
     build:
       context: .
@@ -38,19 +38,19 @@ services:
       db:
         condition: service_healthy
 
-  # ---- Next.js Client ----
+  # Next.js Client
   client:
     build:
       context: .
       dockerfile: client/Dockerfile
       args:
-        # NEXT_PUBLIC vars must be baked in at build time, not passed at runtime
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      API_URL: ${API_URL:-http://server:4000/api/v1}
     depends_on:
       - server
 

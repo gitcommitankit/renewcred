@@ -101,18 +101,21 @@ docker compose exec server npx prisma db seed
 | API | http://localhost:4000/api/v1 |
 | API health | http://localhost:4000/health |
 
-### Option 2: Manual Setup
+### Option 2: Manual Setup (Local Dev with Docker DB)
 
 ```bash
-# 1. Install all workspace dependencies from root
+# 1. Copy env and install dependencies from root
 cp .env.example .env
 pnpm install
 
-# 2. Run migrations and seed data
+# 2. Start PostgreSQL container in Docker
+docker compose up -d db
+
+# 3. Run migrations and seed sample data
 pnpm db:migrate    # Run migrations
 pnpm db:seed       # Seed sample data
 
-# 3. Start the full application
+# 4. Start the full application (live hot-reloading)
 pnpm dev           # Starts both backend (4000) and frontend (3000)
 ```
 
