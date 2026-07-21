@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /*
@@ -62,14 +62,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'paths must be a non-empty array' }, { status: 400 });
     }
 
+    // 1. Purge Next.js Data Cache tags
+    try {
+      (revalidateTag as any)('standards-list');
+    } catch {
+      /* ignore */
+    }
+
+    // 2. Purge Full Route Cache pages and layouts
     for (const path of paths) {
       if (typeof path === 'string' && path.startsWith('/')) {
-        revalidatePath(path);
+        try {
+          revalidatePath(path, 'page');
+          revalidatePath(path, 'layout');
+          revalidatePath(path);
+        } catch {
+          revalidatePath(path);
+        }
+
+        const parts = path.split('/').filter(Boolean);
+        if (parts[0] === 'standards' && parts[1]) {
+          try {
+            (revalidateTag as any)(`standard-${parts[1]}`);
+          } catch {
+            /* ignore */
+          }
+        }
       }
     }
 
     return NextResponse.json({ revalidated: true, paths });
-  } catch {
+  } catch (error) {
+    console.error('Revalidation endpoint error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

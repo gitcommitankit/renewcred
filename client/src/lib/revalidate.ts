@@ -23,7 +23,10 @@ export async function revalidatePublicPaths(paths: string[]): Promise<void> {
       }
     }
 
-    const res = await fetch('/api/revalidate', {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+    const endpoint = siteUrl ? `${siteUrl.replace(/\/$/, '')}/api/revalidate` : '/api/revalidate';
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers,
       credentials: 'include',
