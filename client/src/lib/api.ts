@@ -3,15 +3,15 @@ import { API_URL } from '@/lib/constants';
 
 /**
  * ARCHITECTURE NOTE: Dual-Client Pattern
- * 
+ *
  * This project uses Redux Toolkit (RTK Query) for all primary data fetching and state management
  * (see `src/store/api/`). RTK Query provides automatic caching, background refetching, and tag invalidation.
- * 
- * This Axios client (`lib/api.ts`) exists specifically to handle the robust, queue-based 
+ *
+ * This Axios client (`lib/api.ts`) exists specifically to handle the robust, queue-based
  * token refresh interceptor logic (handling concurrent 401s, queuing requests while refreshing, etc.).
  * While RTK Query has its own baseQuery wrapper for refresh, the Axios interceptor pattern used here
  * is more robust for complex SPAs with many simultaneous requests.
- * 
+ *
  * Do NOT use this client for general API requests (GET/POST for standards, versions, etc.).
  * Always use the generated RTK Query hooks (e.g., `useGetAllStandardsQuery`).
  */
@@ -27,8 +27,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Access token is stored in memory via Redux; read from localStorage as fallback
-    const token =
-      typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

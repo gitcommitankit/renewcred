@@ -10,7 +10,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
       const { admin, accessToken, refreshToken } = await AuthService.login(email, password);
-      
+
       res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions(env));
       res.cookie('accessToken', accessToken, accessTokenCookieOptions(env));
 
@@ -28,8 +28,9 @@ export class AuthController {
         return;
       }
 
-      const { accessToken, refreshToken: newRefreshToken } = await AuthService.refresh(refreshToken);
-      
+      const { accessToken, refreshToken: newRefreshToken } =
+        await AuthService.refresh(refreshToken);
+
       res.cookie('refreshToken', newRefreshToken, refreshTokenCookieOptions(env));
       res.cookie('accessToken', accessToken, accessTokenCookieOptions(env));
 

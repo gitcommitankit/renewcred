@@ -32,7 +32,7 @@ export const validate = (schema: ZodSchema, target: ValidateTarget = 'body') => 
 export const validateUuidParams = (paramNames: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    
+
     for (const paramName of paramNames) {
       const val = req.params[paramName];
       if (!val) {
@@ -44,7 +44,7 @@ export const validateUuidParams = (paramNames: string[]) => {
         });
         return;
       }
-      
+
       const valStr = Array.isArray(val) ? val[0] : val;
       if (!uuidRegex.test(valStr)) {
         res.status(400).json({
@@ -56,7 +56,7 @@ export const validateUuidParams = (paramNames: string[]) => {
         return;
       }
     }
-    
+
     next();
   };
 };

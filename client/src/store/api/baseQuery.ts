@@ -1,4 +1,9 @@
-import { fetchBaseQuery, type BaseQueryFn, type FetchArgs, type FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import {
+  fetchBaseQuery,
+  type BaseQueryFn,
+  type FetchArgs,
+  type FetchBaseQueryError,
+} from '@reduxjs/toolkit/query/react';
 import { API_URL, AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
 
 export const createBaseQuery = (path = '') => {
@@ -6,9 +11,7 @@ export const createBaseQuery = (path = '') => {
     baseUrl: `${API_URL}${path}`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = typeof window !== 'undefined'
-        ? localStorage.getItem('accessToken')
-        : null;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
       if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     },

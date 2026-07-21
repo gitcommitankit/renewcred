@@ -13,32 +13,42 @@ interface Props {
 
 async function getStandard(slug: string): Promise<Standard | null> {
   try {
-    const res = await fetch(`${API_URL}/standards/${slug}`, { next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}`, {
+      next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 },
+    });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function getVersions(slug: string): Promise<VersionSummary[]> {
   try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}/versions`, {
+      next: { tags: [`standard-${slug}`], revalidate: 3600 },
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 async function getLatestVersion(slug: string): Promise<Version | null> {
   try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions/latest`, { next: { tags: [`standard-${slug}`], revalidate: 3600 } });
+    const res = await fetch(`${API_URL}/standards/${slug}/versions/latest`, {
+      next: { tags: [`standard-${slug}`], revalidate: 3600 },
+    });
     if (!res.ok) return null;
     const data = await res.json();
     return data.data ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
-
-
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -75,7 +85,10 @@ export default async function StandardDetailPage({ params }: Props) {
       <section className="bg-warm-gray-100 border-b border-warm-gray-200 py-10 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-2 mb-3">
-            <Link href="/standards" className="inline-flex items-center px-3 py-1 bg-brand-red/10 text-brand-red text-xs font-semibold rounded-full uppercase tracking-widest hover:bg-brand-red/20 transition-colors">
+            <Link
+              href="/standards"
+              className="inline-flex items-center px-3 py-1 bg-brand-red/10 text-brand-red text-xs font-semibold rounded-full uppercase tracking-widest hover:bg-brand-red/20 transition-colors"
+            >
               Standards
             </Link>
           </div>
@@ -83,9 +96,7 @@ export default async function StandardDetailPage({ params }: Props) {
             {standard.icon && <span className="text-4xl">{standard.icon}</span>}
             {standard.title}
           </h1>
-          <p className="text-charcoal-600 max-w-2xl leading-relaxed">
-            {standard.description}
-          </p>
+          <p className="text-charcoal-600 max-w-2xl leading-relaxed">{standard.description}</p>
         </div>
       </section>
 
@@ -108,12 +119,16 @@ export default async function StandardDetailPage({ params }: Props) {
             {!latestVersion ? (
               <div className="text-center py-16 text-charcoal-600">
                 <p className="text-lg font-medium">No published version available</p>
-                <p className="text-sm mt-2 text-warm-gray-500">This standard does not yet have a certified or public version.</p>
+                <p className="text-sm mt-2 text-warm-gray-500">
+                  This standard does not yet have a certified or public version.
+                </p>
               </div>
             ) : rootSections.length === 0 ? (
               <div className="text-center py-16 text-charcoal-600">
                 <p className="text-lg font-medium">No sections yet</p>
-                <p className="text-sm mt-2 text-warm-gray-500">Content for this standard is being prepared.</p>
+                <p className="text-sm mt-2 text-warm-gray-500">
+                  Content for this standard is being prepared.
+                </p>
               </div>
             ) : (
               <div className="space-y-10">
@@ -130,17 +145,26 @@ export default async function StandardDetailPage({ params }: Props) {
 }
 
 /* ──────────────── Section block with anchor ──────────────── */
-function SectionBlock({ section, allSections, depth = 0 }: { section: Section; allSections: Section[]; depth?: number }) {
+function SectionBlock({
+  section,
+  allSections,
+  depth = 0,
+}: {
+  section: Section;
+  allSections: Section[];
+  depth?: number;
+}) {
   const children = allSections
     .filter((s) => s.parentId === section.id)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const HeadingTag = depth === 0 ? 'h2' : depth === 1 ? 'h3' : 'h4';
-  const headingClass = depth === 0
-    ? 'text-2xl font-bold text-charcoal-900'
-    : depth === 1
-    ? 'text-xl font-semibold text-charcoal-900'
-    : 'text-lg font-semibold text-charcoal-800';
+  const headingClass =
+    depth === 0
+      ? 'text-2xl font-bold text-charcoal-900'
+      : depth === 1
+        ? 'text-xl font-semibold text-charcoal-900'
+        : 'text-lg font-semibold text-charcoal-800';
 
   return (
     <div id={`section-${section.id}`} className="scroll-mt-24">
@@ -156,14 +180,17 @@ function SectionBlock({ section, allSections, depth = 0 }: { section: Section; a
         </a>
       </div>
 
-      {section.content && (
-        <TiptapRenderer content={section.content} />
-      )}
+      {section.content && <TiptapRenderer content={section.content} />}
 
       {children.length > 0 && (
         <div className={`mt-6 ${depth > 0 ? 'pl-4 border-l border-warm-gray-200' : ''} space-y-8`}>
           {children.map((child) => (
-            <SectionBlock key={child.id} section={child} allSections={allSections} depth={depth + 1} />
+            <SectionBlock
+              key={child.id}
+              section={child}
+              allSections={allSections}
+              depth={depth + 1}
+            />
           ))}
         </div>
       )}

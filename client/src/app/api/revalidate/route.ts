@@ -42,11 +42,17 @@ export async function POST(req: NextRequest) {
     try {
       decoded = jwt.verify(token, secret) as JwtPayload;
     } catch {
-      return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized: Invalid or expired token' },
+        { status: 401 }
+      );
     }
 
     if (!decoded?.adminId) {
-      return NextResponse.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
+      return NextResponse.json(
+        { error: 'Unauthorized: Admin privileges required' },
+        { status: 403 }
+      );
     }
 
     // Revalidate paths

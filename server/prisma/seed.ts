@@ -3,9 +3,7 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-
 // Helper: Create Tiptap JSON content
-
 
 function tiptapDoc(...content: unknown[]) {
   return { type: 'doc', content };
@@ -47,9 +45,7 @@ function orderedList(...items: string[]) {
   };
 }
 
-
 // Section content builders
-
 
 const sectionContents: Record<string, object> = {
   'ev-1.0': tiptapDoc(
@@ -159,9 +155,7 @@ const sectionContents: Record<string, object> = {
   ),
 };
 
-
 // Seed function
-
 
 async function main() {
   console.log('🌱 Starting seed...');
@@ -173,10 +167,7 @@ async function main() {
   await prisma.admin.deleteMany();
 
   // ---- Create admin user ----
-  const passwordHash = await bcrypt.hash(
-    process.env.SEED_ADMIN_PASSWORD || 'Admin@123',
-    12
-  );
+  const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'Admin@123', 12);
 
   const admin = await prisma.admin.create({
     data: {
@@ -264,20 +255,72 @@ async function main() {
 
     // ---- Create sections for the certified version ----
     const sectionsToCreate = [
-      { number: '1.0', title: 'Introduction', slug: '1-0-introduction', sortOrder: 0, parentId: null as string | null, contentKey: `${prefix}-1.0` },
-      { number: '2.0', title: 'Future Versions', slug: '2-0-future-versions', sortOrder: 1, parentId: null as string | null, contentKey: `${prefix}-2.0` },
-      { number: '2.1', title: 'Future Versions', slug: '2-1-future-versions', sortOrder: 2, parentId: null as string | null, contentKey: `${prefix}-2.1` },
-      { number: '2.2', title: 'Future Versions', slug: '2-2-future-versions', sortOrder: 5, parentId: null as string | null, contentKey: `${prefix}-2.0` },
-      { number: '3.0', title: 'Future Versions', slug: '3-0-future-versions', sortOrder: 6, parentId: null as string | null, contentKey: `${prefix}-3.0` },
-      { number: '3.1', title: 'Future Versions', slug: '3-1-future-versions', sortOrder: 7, parentId: null as string | null, contentKey: `${prefix}-2.0` },
-      { number: '3.2', title: 'Future Versions', slug: '3-2-future-versions', sortOrder: 10, parentId: null as string | null, contentKey: `${prefix}-2.0` },
+      {
+        number: '1.0',
+        title: 'Introduction',
+        slug: '1-0-introduction',
+        sortOrder: 0,
+        parentId: null as string | null,
+        contentKey: `${prefix}-1.0`,
+      },
+      {
+        number: '2.0',
+        title: 'Future Versions',
+        slug: '2-0-future-versions',
+        sortOrder: 1,
+        parentId: null as string | null,
+        contentKey: `${prefix}-2.0`,
+      },
+      {
+        number: '2.1',
+        title: 'Future Versions',
+        slug: '2-1-future-versions',
+        sortOrder: 2,
+        parentId: null as string | null,
+        contentKey: `${prefix}-2.1`,
+      },
+      {
+        number: '2.2',
+        title: 'Future Versions',
+        slug: '2-2-future-versions',
+        sortOrder: 5,
+        parentId: null as string | null,
+        contentKey: `${prefix}-2.0`,
+      },
+      {
+        number: '3.0',
+        title: 'Future Versions',
+        slug: '3-0-future-versions',
+        sortOrder: 6,
+        parentId: null as string | null,
+        contentKey: `${prefix}-3.0`,
+      },
+      {
+        number: '3.1',
+        title: 'Future Versions',
+        slug: '3-1-future-versions',
+        sortOrder: 7,
+        parentId: null as string | null,
+        contentKey: `${prefix}-2.0`,
+      },
+      {
+        number: '3.2',
+        title: 'Future Versions',
+        slug: '3-2-future-versions',
+        sortOrder: 10,
+        parentId: null as string | null,
+        contentKey: `${prefix}-2.0`,
+      },
     ];
 
     // Create top-level sections first, then add children
     const createdSections: Record<string, string> = {};
 
     for (const sectionData of sectionsToCreate) {
-      const content = sectionContents[sectionData.contentKey] || sectionContents[`${prefix}-2.0`] || tiptapDoc(paragraph('Content coming soon.'));
+      const content =
+        sectionContents[sectionData.contentKey] ||
+        sectionContents[`${prefix}-2.0`] ||
+        tiptapDoc(paragraph('Content coming soon.'));
 
       const section = await prisma.section.create({
         data: {
@@ -296,14 +339,39 @@ async function main() {
 
     // Create child sections (2.1.1, 2.1.2, 3.1.1, 3.1.2)
     const childSections = [
-      { number: '2.1.1', title: 'Future Versions', slug: '2-1-1-future-versions', sortOrder: 3, parentNumber: '2.1' },
-      { number: '2.1.2', title: 'Future Versions', slug: '2-1-2-future-versions', sortOrder: 4, parentNumber: '2.1' },
-      { number: '3.1.1', title: 'Future Versions', slug: '3-1-1-future-versions', sortOrder: 8, parentNumber: '3.1' },
-      { number: '3.1.2', title: 'Future Versions', slug: '3-1-2-future-versions', sortOrder: 9, parentNumber: '3.1' },
+      {
+        number: '2.1.1',
+        title: 'Future Versions',
+        slug: '2-1-1-future-versions',
+        sortOrder: 3,
+        parentNumber: '2.1',
+      },
+      {
+        number: '2.1.2',
+        title: 'Future Versions',
+        slug: '2-1-2-future-versions',
+        sortOrder: 4,
+        parentNumber: '2.1',
+      },
+      {
+        number: '3.1.1',
+        title: 'Future Versions',
+        slug: '3-1-1-future-versions',
+        sortOrder: 8,
+        parentNumber: '3.1',
+      },
+      {
+        number: '3.1.2',
+        title: 'Future Versions',
+        slug: '3-1-2-future-versions',
+        sortOrder: 9,
+        parentNumber: '3.1',
+      },
     ];
 
     for (const child of childSections) {
-      const content = sectionContents[`${prefix}-2.0`] || tiptapDoc(paragraph('Content coming soon.'));
+      const content =
+        sectionContents[`${prefix}-2.0`] || tiptapDoc(paragraph('Content coming soon.'));
 
       await prisma.section.create({
         data: {
@@ -319,7 +387,8 @@ async function main() {
     }
 
     // Also create sections for the public consultation version
-    const introContent = sectionContents[`${prefix}-1.0`] || tiptapDoc(paragraph('Content under consultation.'));
+    const introContent =
+      sectionContents[`${prefix}-1.0`] || tiptapDoc(paragraph('Content under consultation.'));
 
     try {
       await prisma.section.create({
@@ -333,7 +402,12 @@ async function main() {
         },
       });
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'P2002') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'P2002'
+      ) {
         console.log(`Skipping existing record`);
       } else {
         throw error;
@@ -342,7 +416,6 @@ async function main() {
 
     console.log(`  📄 Sections created for ${standard.title}`);
   }
-
 
   console.log('');
   console.log('🎉 Seed completed successfully!');

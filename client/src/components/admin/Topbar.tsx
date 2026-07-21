@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 export default function Topbar() {
   const { admin, logout, isLogoutLoading } = useAuth();
   const pathname = usePathname();
-  
+
   let title = 'Admin Dashboard';
   if (pathname.includes('/dashboard/standards')) title = 'Standards Management';
   if (pathname.includes('/dashboard/pages')) title = 'Pages Management';
@@ -17,9 +17,7 @@ export default function Topbar() {
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white border-b border-warm-gray-200 shrink-0 min-h-16.25">
       {/* Page Title */}
-      <h1 className="text-base font-semibold text-charcoal-900">
-        {title}
-      </h1>
+      <h1 className="text-base font-semibold text-charcoal-900">{title}</h1>
 
       {/* Right: admin info + logout */}
       <div className="flex items-center gap-3">

@@ -34,7 +34,9 @@ export const standardsApi = createApi({
           await queryFulfilled;
           // New standard on the list page
           await revalidatePublicPaths(['/standards']);
-        } catch { /* mutation failed — nothing to revalidate */ }
+        } catch {
+          /* mutation failed — nothing to revalidate */
+        }
       },
     }),
 
@@ -59,7 +61,9 @@ export const standardsApi = createApi({
           const paths = ['/standards'];
           if (slug) paths.push(`/standards/${slug}`);
           await revalidatePublicPaths(paths);
-        } catch { /* mutation failed — nothing to revalidate */ }
+        } catch {
+          /* mutation failed — nothing to revalidate */
+        }
       },
     }),
 
@@ -76,7 +80,9 @@ export const standardsApi = createApi({
         try {
           await queryFulfilled;
           await revalidatePublicPaths(['/standards', `/standards/${slug}`]);
-        } catch { /* mutation failed — nothing to revalidate */ }
+        } catch {
+          /* mutation failed — nothing to revalidate */
+        }
       },
     }),
   }),

@@ -24,14 +24,14 @@ export default function Footer() {
     <footer className="bg-charcoal-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-
           {/* Column 1: Brand */}
           <div>
             <Link href="/" className="inline-block mb-4">
               <Logo className="h-8 w-auto text-white" />
             </Link>
             <p className="text-sm text-warm-gray-400 leading-relaxed mb-5">
-              Setting the global standard for climate credibility. Rigorous, transparent, and science-based certification for climate action.
+              Setting the global standard for climate credibility. Rigorous, transparent, and
+              science-based certification for climate action.
             </p>
             <div className="space-y-2 text-sm text-warm-gray-400">
               <div className="flex items-start gap-2">
@@ -63,11 +63,16 @@ export default function Footer() {
 
           {/* Column 2: Navigation */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Navigation</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Navigation
+            </h3>
             <ul className="space-y-2">
               {NAV_LINKS.map(({ href, label }) => (
                 <li key={href}>
-                  <Link href={href} className="text-sm text-warm-gray-400 hover:text-white transition-colors">
+                  <Link
+                    href={href}
+                    className="text-sm text-warm-gray-400 hover:text-white transition-colors"
+                  >
                     {label}
                   </Link>
                 </li>
@@ -77,7 +82,9 @@ export default function Footer() {
 
           {/* Column 3: Newsletter */}
           <div>
-            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Stay Informed</h3>
+            <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+              Stay Informed
+            </h3>
             <p className="text-sm text-warm-gray-400 leading-relaxed">
               Get the latest updates on climate standards, certification news, and policy changes.
             </p>

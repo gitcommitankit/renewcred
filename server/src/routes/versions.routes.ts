@@ -17,7 +17,12 @@ router.get('/standards/:slug/versions/latest', VersionsController.getLatest);
 router.get('/standards/:slug/versions/:versionSlug', VersionsController.getBySlug);
 
 // ---- Admin routes ----
-router.get('/admin/versions/:id', authenticate, validateUuidParams(['id']), VersionsController.getById);
+router.get(
+  '/admin/versions/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  VersionsController.getById
+);
 router.post(
   '/admin/standards/:id/versions',
   authenticate,
@@ -32,7 +37,12 @@ router.put(
   validate(updateVersionSchema),
   VersionsController.update
 );
-router.delete('/admin/versions/:id', authenticate, validateUuidParams(['id']), VersionsController.delete);
+router.delete(
+  '/admin/versions/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  VersionsController.delete
+);
 
 // ---- Admin Section routes ----
 router.post(
@@ -49,7 +59,12 @@ router.put(
   validate(updateSectionSchema),
   VersionsController.updateSection
 );
-router.delete('/admin/sections/:id', authenticate, validateUuidParams(['id']), VersionsController.deleteSection);
+router.delete(
+  '/admin/sections/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  VersionsController.deleteSection
+);
 router.put(
   '/admin/versions/:versionId/sections/reorder',
   authenticate,

@@ -1,9 +1,8 @@
 'use client';
 
-import AdminShell from "@/components/admin/AdminShell";
-import Sidebar from "@/components/admin/Sidebar";
-import Topbar from "@/components/admin/Topbar";
-
+import AdminShell from '@/components/admin/AdminShell';
+import Sidebar from '@/components/admin/Sidebar';
+import Topbar from '@/components/admin/Topbar';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,9 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
           <Topbar />
-          <main className="flex-1 overflow-y-auto p-6">
-            {children}
-          </main>
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
         </div>
       </div>
     </AdminShell>

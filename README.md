@@ -28,28 +28,29 @@ renewcred/
 
 ### Backend (`/server`)
 
-| Layer | Detail |
-|---|---|
-| Framework | Express.js + TypeScript |
-| ORM | Prisma + PostgreSQL |
+| Layer      | Detail                                     |
+| ---------- | ------------------------------------------ |
+| Framework  | Express.js + TypeScript                    |
+| ORM        | Prisma + PostgreSQL                        |
 | Validation | Zod (schema-validated at middleware layer) |
-| Auth | JWT (jsonwebtoken) + bcryptjs |
-| Logging | Pino |
-| Security | helmet, CORS, express-rate-limit |
+| Auth       | JWT (jsonwebtoken) + bcryptjs              |
+| Logging    | Pino                                       |
+| Security   | helmet, CORS, express-rate-limit           |
 
 Architecture: `Routes → Controllers → Services`. Controllers are thin HTTP adapters; all business logic lives in Service classes.
 
 ### Frontend (`/client`)
 
-| Layer | Detail |
-|---|---|
-| Framework | Next.js 16, React 19 |
-| State/Data | Redux Toolkit + RTK Query |
-| Styling | Tailwind CSS v4 (CSS-variable theme) |
-| Editor | Tiptap (content stored as structured JSON) |
-| DnD | @dnd-kit |
+| Layer      | Detail                                     |
+| ---------- | ------------------------------------------ |
+| Framework  | Next.js 16, React 19                       |
+| State/Data | Redux Toolkit + RTK Query                  |
+| Styling    | Tailwind CSS v4 (CSS-variable theme)       |
+| Editor     | Tiptap (content stored as structured JSON) |
+| DnD        | @dnd-kit                                   |
 
 Route groups provide layout isolation:
+
 - `(admin)` — Client Components, RTK Query, protected by Next.js Middleware
 - `(public)` — Server Components, ISR-cached
 
@@ -57,16 +58,16 @@ Route groups provide layout isolation:
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16, React 19, RTK Query, Tailwind CSS v4 |
-| Editor | Tiptap, KaTeX, @dnd-kit |
-| Backend | Express.js 5, TypeScript, Prisma ORM |
-| Database | PostgreSQL |
-| Validation | Zod |
-| Auth | JWT, bcryptjs |
-| Logging | Pino |
-| Infrastructure | Docker, Docker Compose, pnpm workspaces |
+| Layer          | Technology                                       |
+| -------------- | ------------------------------------------------ |
+| Frontend       | Next.js 16, React 19, RTK Query, Tailwind CSS v4 |
+| Editor         | Tiptap, KaTeX, @dnd-kit                          |
+| Backend        | Express.js 5, TypeScript, Prisma ORM             |
+| Database       | PostgreSQL                                       |
+| Validation     | Zod                                              |
+| Auth           | JWT, bcryptjs                                    |
+| Logging        | Pino                                             |
+| Infrastructure | Docker, Docker Compose, pnpm workspaces          |
 
 ---
 
@@ -94,12 +95,12 @@ docker compose exec server node -e "require('./dist/index.js')" # ensure server 
 docker compose exec server npx prisma db seed
 ```
 
-| Service | URL |
-|---|---|
-| Public site | http://localhost:3000 |
+| Service     | URL                               |
+| ----------- | --------------------------------- |
+| Public site | http://localhost:3000             |
 | Admin panel | http://localhost:3000/admin/login |
-| API | http://localhost:4000/api/v1 |
-| API health | http://localhost:4000/health |
+| API         | http://localhost:4000/api/v1      |
+| API health  | http://localhost:4000/health      |
 
 ### Option 2: Manual Setup (Local Dev with Docker DB)
 
@@ -121,16 +122,16 @@ pnpm dev           # Starts both backend (4000) and frontend (3000)
 
 ### Root-level Scripts
 
-| Command | Action |
-|---|---|
-| `pnpm dev` | Start client + server in parallel |
-| `pnpm build` | Build server then client |
-| `pnpm db:migrate` | Run Prisma migrations (dev) |
-| `pnpm db:migrate:prod` | Deploy migrations (production) |
-| `pnpm db:generate` | Regenerate Prisma client |
-| `pnpm db:seed` | Seed the database |
-| `pnpm db:studio` | Open Prisma Studio |
-| `pnpm db:reset` | Reset and re-migrate |
+| Command                | Action                            |
+| ---------------------- | --------------------------------- |
+| `pnpm dev`             | Start client + server in parallel |
+| `pnpm build`           | Build server then client          |
+| `pnpm db:migrate`      | Run Prisma migrations (dev)       |
+| `pnpm db:migrate:prod` | Deploy migrations (production)    |
+| `pnpm db:generate`     | Regenerate Prisma client          |
+| `pnpm db:seed`         | Seed the database                 |
+| `pnpm db:studio`       | Open Prisma Studio                |
+| `pnpm db:reset`        | Reset and re-migrate              |
 
 ---
 
@@ -190,8 +191,8 @@ datasource db {
 
 Set the following environment variable in your Vercel project settings:
 
-| Variable | Value |
-|---|---|
+| Variable              | Value                                 |
+| --------------------- | ------------------------------------- |
 | `NEXT_PUBLIC_API_URL` | `https://your-backend-url.com/api/v1` |
 
 ### Server → Render / Railway / Fly.io
@@ -227,11 +228,11 @@ npx prisma db seed
 
 ## Admin Credentials (Seed)
 
-| Field | Value |
-|---|---|
-| Login URL | `/admin/login` |
-| Email | `admin@renewcred.com` |
-| Password | `Admin@123` |
+| Field     | Value                 |
+| --------- | --------------------- |
+| Login URL | `/admin/login`        |
+| Email     | `admin@renewcred.com` |
+| Password  | `Admin@123`           |
 
 The seed script creates sample standards (Electric Vehicles, Biochar, Renewable Energy) with versions and rich content sections.
 
@@ -239,11 +240,11 @@ The seed script creates sample standards (Electric Vehicles, Biochar, Renewable 
 
 ## Key Decisions
 
-| Decision | Rationale |
-|---|---|
-| HttpOnly cookies for Auth tokens | Prevents XSS from reading access and refresh tokens |
-| JSON content field for sections | Schema-agnostic — rich content evolves without DB migrations |
-| `isLatest` flag + `$transaction` | Ensures exactly one latest version per standard atomically |
-| ISR on public pages | Near-real-time updates without sacrificing static generation performance |
-| `@dnd-kit` for drag-and-drop | Accessible, pointer-based DnD with keyboard fallback |
-| Tiptap JSON storage | Renderer-agnostic — same content can be rendered in web, email, or PDF |
+| Decision                         | Rationale                                                                |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| HttpOnly cookies for Auth tokens | Prevents XSS from reading access and refresh tokens                      |
+| JSON content field for sections  | Schema-agnostic — rich content evolves without DB migrations             |
+| `isLatest` flag + `$transaction` | Ensures exactly one latest version per standard atomically               |
+| ISR on public pages              | Near-real-time updates without sacrificing static generation performance |
+| `@dnd-kit` for drag-and-drop     | Accessible, pointer-based DnD with keyboard fallback                     |
+| Tiptap JSON storage              | Renderer-agnostic — same content can be rendered in web, email, or PDF   |

@@ -21,7 +21,12 @@ export class ApiResponse<T = unknown> {
     this.meta = meta;
   }
 
-  static success<T>(data: T, message = 'Success', statusCode = 200, meta?: Record<string, unknown>) {
+  static success<T>(
+    data: T,
+    message = 'Success',
+    statusCode = 200,
+    meta?: Record<string, unknown>
+  ) {
     return new ApiResponse<T>({ success: true, statusCode, message, data, meta });
   }
 

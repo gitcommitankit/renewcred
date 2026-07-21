@@ -42,8 +42,7 @@ function LoginForm() {
       toast.success('Welcome back!');
     } catch (err: unknown) {
       const msg =
-        (err as { data?: { message?: string } })?.data?.message ||
-        'Invalid email or password';
+        (err as { data?: { message?: string } })?.data?.message || 'Invalid email or password';
       toast.error(msg);
     }
   };
@@ -116,7 +115,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-warm-gray-100">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-warm-gray-100">
+          Loading...
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

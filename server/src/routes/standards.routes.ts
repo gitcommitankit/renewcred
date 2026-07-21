@@ -12,9 +12,30 @@ router.get('/standards/:slug', StandardsController.getBySlug);
 
 // ---- Admin routes ----
 router.get('/admin/standards', authenticate, StandardsController.getAll);
-router.get('/admin/standards/:id', authenticate, validateUuidParams(['id']), StandardsController.getById);
-router.post('/admin/standards', authenticate, validate(createStandardSchema), StandardsController.create);
-router.put('/admin/standards/:id', authenticate, validateUuidParams(['id']), validate(updateStandardSchema), StandardsController.update);
-router.delete('/admin/standards/:id', authenticate, validateUuidParams(['id']), StandardsController.delete);
+router.get(
+  '/admin/standards/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  StandardsController.getById
+);
+router.post(
+  '/admin/standards',
+  authenticate,
+  validate(createStandardSchema),
+  StandardsController.create
+);
+router.put(
+  '/admin/standards/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  validate(updateStandardSchema),
+  StandardsController.update
+);
+router.delete(
+  '/admin/standards/:id',
+  authenticate,
+  validateUuidParams(['id']),
+  StandardsController.delete
+);
 
 export default router;

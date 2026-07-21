@@ -18,7 +18,11 @@ const STATUS_OPTIONS: { value: VersionStatus; label: string }[] = [
 ];
 
 function slugify(text: string) {
-  return text.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 export default function NewVersionPage() {
@@ -48,19 +52,31 @@ export default function NewVersionPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.versionLabel.trim() || !form.slug.trim()) { toast.error('Label and slug are required'); return; }
+    if (!form.versionLabel.trim() || !form.slug.trim()) {
+      toast.error('Label and slug are required');
+      return;
+    }
     try {
-      const result = await createVersion({ standardId: params.id, data: form, standardSlug: standardData?.data?.slug ?? '' }).unwrap();
+      const result = await createVersion({
+        standardId: params.id,
+        data: form,
+        standardSlug: standardData?.data?.slug ?? '',
+      }).unwrap();
       toast.success('Version created!');
       router.push(`/admin/dashboard/standards/${params.id}/versions/${result.data.id}`);
     } catch (err: unknown) {
-      toast.error((err as { data?: { message?: string } })?.data?.message || 'Failed to create version');
+      toast.error(
+        (err as { data?: { message?: string } })?.data?.message || 'Failed to create version'
+      );
     }
   };
 
   return (
     <>
-      <Link href={`/admin/dashboard/standards/${params.id}/versions`} className="inline-flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 mb-6 transition-colors">
+      <Link
+        href={`/admin/dashboard/standards/${params.id}/versions`}
+        className="inline-flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 mb-6 transition-colors"
+      >
         <ArrowLeft size={15} /> {standardData?.data?.title} — Versions
       </Link>
 
@@ -71,14 +87,19 @@ export default function NewVersionPage() {
             <Input
               label="Version Label"
               value={form.versionLabel}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => set('versionLabel', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                set('versionLabel', e.target.value)
+              }
               placeholder="v1.0.0"
               required
             />
             <Input
               label="Slug"
               value={form.slug}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSlugEdited(true); set('slug', e.target.value); }}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setSlugEdited(true);
+                set('slug', e.target.value);
+              }}
               placeholder="v1-0-0"
               hint="Auto-generated"
               required
@@ -110,28 +131,60 @@ export default function NewVersionPage() {
           {/* Conditional date fields */}
           {form.status === 'PUBLIC_CONSULTATION' && (
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Consultation Start" type="date" value={form.consultationStartDate ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => set('consultationStartDate', e.target.value || null)} />
-              <Input label="Consultation End" type="date" value={form.consultationEndDate ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => set('consultationEndDate', e.target.value || null)} />
+              <Input
+                label="Consultation Start"
+                type="date"
+                value={form.consultationStartDate ?? ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  set('consultationStartDate', e.target.value || null)
+                }
+              />
+              <Input
+                label="Consultation End"
+                type="date"
+                value={form.consultationEndDate ?? ''}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  set('consultationEndDate', e.target.value || null)
+                }
+              />
             </div>
           )}
           {form.status === 'CERTIFIED' && (
-            <Input label="Certified At" type="date" value={form.certifiedAt ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>) => set('certifiedAt', e.target.value || null)} />
+            <Input
+              label="Certified At"
+              type="date"
+              value={form.certifiedAt ?? ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                set('certifiedAt', e.target.value || null)
+              }
+            />
           )}
 
           {/* isLatest toggle */}
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <div onClick={() => set('isLatest', !form.isLatest)} className={`relative w-10 h-5 rounded-full transition-colors ${form.isLatest ? 'bg-brand-red' : 'bg-warm-gray-300'}`}>
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isLatest ? 'translate-x-5' : ''}`} />
+            <div
+              onClick={() => set('isLatest', !form.isLatest)}
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.isLatest ? 'bg-brand-red' : 'bg-warm-gray-300'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isLatest ? 'translate-x-5' : ''}`}
+              />
             </div>
             <div>
               <span className="text-sm font-medium text-charcoal-900">Mark as Latest</span>
-              <p className="text-xs text-warm-gray-500">This version shown by default on public site</p>
+              <p className="text-xs text-warm-gray-500">
+                This version shown by default on public site
+              </p>
             </div>
           </label>
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" isLoading={isLoading}>Create & Add Sections</Button>
-            <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+            <Button type="submit" isLoading={isLoading}>
+              Create & Add Sections
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
+              Cancel
+            </Button>
           </div>
         </form>
       </div>

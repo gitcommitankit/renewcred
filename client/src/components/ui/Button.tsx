@@ -18,8 +18,7 @@ const variantStyles: Record<ButtonVariant, string> = {
     'bg-charcoal-900 text-white hover:bg-charcoal-800 active:bg-charcoal-700 border border-charcoal-900',
   ghost:
     'bg-transparent text-charcoal-700 hover:bg-warm-gray-100 active:bg-warm-gray-200 border border-transparent',
-  danger:
-    'bg-red-50 text-red-600 hover:bg-red-100 active:bg-red-200 border border-red-200',
+  danger: 'bg-red-50 text-red-600 hover:bg-red-100 active:bg-red-200 border border-red-200',
   outline:
     'bg-transparent text-charcoal-900 hover:bg-warm-gray-100 border border-warm-gray-300 hover:border-charcoal-900',
 };
@@ -98,14 +97,7 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
       viewBox="0 0 24 24"
       aria-label="Loading"
     >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
         fill="currentColor"

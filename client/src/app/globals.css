@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* ============================================================
    RenewCred Design System — Global CSS
@@ -8,20 +8,20 @@
 
 @theme {
   /* Brand Colors */
-  --color-brand-red:        #BE202E;
-  --color-brand-red-dark:   #9C1A25;
-  --color-brand-red-light:  #E8A5AA;
+  --color-brand-red: #be202e;
+  --color-brand-red-dark: #9c1a25;
+  --color-brand-red-light: #e8a5aa;
 
-  --color-charcoal-900:     #2B2C2C;
-  --color-charcoal-800:     #3F4040;
-  --color-charcoal-700:     #535454;
-  --color-charcoal-600:     #676868;
+  --color-charcoal-900: #2b2c2c;
+  --color-charcoal-800: #3f4040;
+  --color-charcoal-700: #535454;
+  --color-charcoal-600: #676868;
 
-  --color-warm-gray-100:    #F5F5F5;
-  --color-warm-gray-200:    #EBEBEB;
-  --color-warm-gray-300:    #D8D8D8;
-  --color-warm-gray-400:    #B8B8B8;
-  --color-warm-gray-500:    #989898;
+  --color-warm-gray-100: #f5f5f5;
+  --color-warm-gray-200: #ebebeb;
+  --color-warm-gray-300: #d8d8d8;
+  --color-warm-gray-400: #b8b8b8;
+  --color-warm-gray-500: #989898;
 
   /* Sizing / Spacing Variables (replaces arbitrary [] usage) */
   --spacing-40vh: 40vh;
@@ -29,12 +29,14 @@
   --spacing-dashboard: calc(100vh - 65px);
 
   /* Typography */
-  --font-sans:              'Inter', system-ui, sans-serif;
-  --font-mono:              'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
 /* Base resets */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -81,7 +83,12 @@ body {
 }
 
 /* Typography resets */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -92,7 +99,8 @@ a {
   text-decoration: none;
 }
 
-img, video {
+img,
+video {
   max-width: 100%;
   height: auto;
 }
@@ -119,13 +127,39 @@ img, video {
 }
 
 /* Tiptap rendered content styles */
-.tiptap-content h1 { font-size: 2rem; font-weight: 700; margin-bottom: 1rem; }
-.tiptap-content h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; margin-top: 1.5rem; }
-.tiptap-content h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; margin-top: 1.25rem; }
-.tiptap-content p { margin-bottom: 1rem; }
-.tiptap-content ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
-.tiptap-content ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
-.tiptap-content li { margin-bottom: 0.25rem; }
+.tiptap-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.tiptap-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+}
+.tiptap-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1.25rem;
+}
+.tiptap-content p {
+  margin-bottom: 1rem;
+}
+.tiptap-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.tiptap-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+.tiptap-content li {
+  margin-bottom: 0.25rem;
+}
 .tiptap-content code {
   font-family: var(--font-mono);
   background: var(--color-warm-gray-100);
@@ -163,6 +197,13 @@ img, video {
   background: var(--color-warm-gray-100);
   font-weight: 600;
 }
-.tiptap-content strong { font-weight: 600; }
-.tiptap-content em { font-style: italic; }
-.tiptap-content a { color: var(--color-brand-red); text-decoration: underline; }
+.tiptap-content strong {
+  font-weight: 600;
+}
+.tiptap-content em {
+  font-style: italic;
+}
+.tiptap-content a {
+  color: var(--color-brand-red);
+  text-decoration: underline;
+}

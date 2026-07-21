@@ -10,11 +10,24 @@ function renderMark(
   key: number
 ): React.ReactNode {
   switch (mark.type) {
-    case 'bold': return <strong key={key}>{text}</strong>;
-    case 'italic': return <em key={key}>{text}</em>;
-    case 'strike': return <s key={key}>{text}</s>;
-    case 'code': return <code key={key} className="rc-inline-code">{text}</code>;
-    case 'highlight': return <mark key={key} className="rc-highlight">{text}</mark>;
+    case 'bold':
+      return <strong key={key}>{text}</strong>;
+    case 'italic':
+      return <em key={key}>{text}</em>;
+    case 'strike':
+      return <s key={key}>{text}</s>;
+    case 'code':
+      return (
+        <code key={key} className="rc-inline-code">
+          {text}
+        </code>
+      );
+    case 'highlight':
+      return (
+        <mark key={key} className="rc-highlight">
+          {text}
+        </mark>
+      );
     case 'link':
       return (
         <a
@@ -27,7 +40,8 @@ function renderMark(
           {text}
         </a>
       );
-    default: return <span key={key}>{text}</span>;
+    default:
+      return <span key={key}>{text}</span>;
   }
 }
 
@@ -86,7 +100,8 @@ function RenderNode({ node }: { node: RawNode }) {
       return (
         <>
           {node.marks.reduce<React.ReactNode>(
-            (acc, mark, i) => renderMark(mark, '', i) === null ? acc : <>{renderMark(mark, text, i)}</>,
+            (acc, mark, i) =>
+              renderMark(mark, '', i) === null ? acc : <>{renderMark(mark, text, i)}</>,
             text
           )}
         </>
@@ -106,7 +121,11 @@ function RenderNode({ node }: { node: RawNode }) {
       return <ul className="rc-ul">{children}</ul>;
 
     case 'orderedList':
-      return <ol className="rc-ol" start={(node.attrs?.start as number) ?? 1}>{children}</ol>;
+      return (
+        <ol className="rc-ol" start={(node.attrs?.start as number) ?? 1}>
+          {children}
+        </ol>
+      );
 
     case 'listItem':
       return <li className="rc-li">{children}</li>;
@@ -136,10 +155,26 @@ function RenderNode({ node }: { node: RawNode }) {
       return <tr>{children}</tr>;
 
     case 'tableHeader':
-      return <th className="rc-th" colSpan={(node.attrs?.colspan as number) ?? 1} rowSpan={(node.attrs?.rowspan as number) ?? 1}>{children}</th>;
+      return (
+        <th
+          className="rc-th"
+          colSpan={(node.attrs?.colspan as number) ?? 1}
+          rowSpan={(node.attrs?.rowspan as number) ?? 1}
+        >
+          {children}
+        </th>
+      );
 
     case 'tableCell':
-      return <td className="rc-td" colSpan={(node.attrs?.colspan as number) ?? 1} rowSpan={(node.attrs?.rowspan as number) ?? 1}>{children}</td>;
+      return (
+        <td
+          className="rc-td"
+          colSpan={(node.attrs?.colspan as number) ?? 1}
+          rowSpan={(node.attrs?.rowspan as number) ?? 1}
+        >
+          {children}
+        </td>
+      );
 
     case 'hardBreak':
       return <br />;
@@ -150,14 +185,14 @@ function RenderNode({ node }: { node: RawNode }) {
     // Math nodes from @tiptap/extension-mathematics
     case 'inlineMath':
     case 'mathInline': {
-      const latex = (node.attrs?.latex as string) ?? (node.text ?? '');
+      const latex = (node.attrs?.latex as string) ?? node.text ?? '';
       return <MathNode latex={latex} displayMode={false} />;
     }
 
     case 'blockMath':
     case 'mathDisplay':
     case 'mathBlock': {
-      const latex = (node.attrs?.latex as string) ?? (node.text ?? '');
+      const latex = (node.attrs?.latex as string) ?? node.text ?? '';
       return <MathNode latex={latex} displayMode={true} />;
     }
 

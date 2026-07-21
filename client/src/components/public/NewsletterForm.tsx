@@ -12,7 +12,7 @@ export default function NewsletterForm() {
         e.preventDefault();
         // UI-only — no backend connection yet
         if (email) {
-          toast.success('Thanks for subscribing! We\'ll keep you updated.');
+          toast.success("Thanks for subscribing! We'll keep you updated.");
           setEmail('');
         }
       }}

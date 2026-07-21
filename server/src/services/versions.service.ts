@@ -1,13 +1,16 @@
-
-import { prisma } from "../config/database";
-import { ApiError } from "../utils/ApiError";
-import { CreateSectionInput, CreateVersionInput, ReorderSectionsInput, UpdateSectionInput, UpdateVersionInput } from "../validators/versions.validator";
-
+import { prisma } from '../config/database';
+import { ApiError } from '../utils/ApiError';
+import {
+  CreateSectionInput,
+  CreateVersionInput,
+  ReorderSectionsInput,
+  UpdateSectionInput,
+  UpdateVersionInput,
+} from '../validators/versions.validator';
 
 export class VersionsService {
-  
   // Versions
-  
+
   /**
    * Get a specific version with all sections (public)
    */
@@ -81,7 +84,9 @@ export class VersionsService {
           ...data,
           standardId,
           certifiedAt: data.certifiedAt ? new Date(data.certifiedAt) : null,
-          consultationStartDate: data.consultationStartDate ? new Date(data.consultationStartDate) : null,
+          consultationStartDate: data.consultationStartDate
+            ? new Date(data.consultationStartDate)
+            : null,
           consultationEndDate: data.consultationEndDate ? new Date(data.consultationEndDate) : null,
         },
       });
@@ -111,15 +116,24 @@ export class VersionsService {
         where: { id },
         data: {
           ...data,
-          certifiedAt: data.certifiedAt !== undefined
-            ? (data.certifiedAt ? new Date(data.certifiedAt) : null)
-            : undefined,
-          consultationStartDate: data.consultationStartDate !== undefined
-            ? (data.consultationStartDate ? new Date(data.consultationStartDate) : null)
-            : undefined,
-          consultationEndDate: data.consultationEndDate !== undefined
-            ? (data.consultationEndDate ? new Date(data.consultationEndDate) : null)
-            : undefined,
+          certifiedAt:
+            data.certifiedAt !== undefined
+              ? data.certifiedAt
+                ? new Date(data.certifiedAt)
+                : null
+              : undefined,
+          consultationStartDate:
+            data.consultationStartDate !== undefined
+              ? data.consultationStartDate
+                ? new Date(data.consultationStartDate)
+                : null
+              : undefined,
+          consultationEndDate:
+            data.consultationEndDate !== undefined
+              ? data.consultationEndDate
+                ? new Date(data.consultationEndDate)
+                : null
+              : undefined,
         },
       });
     });
@@ -155,11 +169,7 @@ export class VersionsService {
     return version;
   }
 
-  
   // Sections
-  
-
-
 
   /**
    * Create a section (admin)

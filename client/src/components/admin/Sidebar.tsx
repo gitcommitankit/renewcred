@@ -34,7 +34,9 @@ export default function Sidebar() {
       ].join(' ')}
     >
       <div className="flex items-center px-4 py-5 border-b border-charcoal-800 min-h-[72.5px] overflow-hidden">
-        <Logo className={`h-6 w-auto text-white shrink-0 transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`} />
+        <Logo
+          className={`h-6 w-auto text-white shrink-0 transition-opacity duration-300 ${collapsed ? 'opacity-0' : 'opacity-100'}`}
+        />
       </div>
 
       {/* Nav */}

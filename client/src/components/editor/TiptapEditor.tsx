@@ -34,7 +34,6 @@ import {
 } from 'lucide-react';
 import { TiptapDocument } from '@/types';
 
-
 interface TiptapEditorProps {
   content: TiptapDocument | null;
   onChange: (content: TiptapDocument) => void;
@@ -87,7 +86,10 @@ function LinkPopover({
   const [url, setUrl] = useState(initialUrl);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') { e.preventDefault(); onConfirm(url); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onConfirm(url);
+    }
     if (e.key === 'Escape') onClose();
   };
 
@@ -164,20 +166,23 @@ export default function TiptapEditor({
     }
   }, [content, editor]);
 
-  const handleSetLink = useCallback((url: string) => {
-    setShowLinkPopover(false);
-    if (!editor) return;
-    if (!url) {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-    // If no text is selected, insert the URL as text and linkify it
-    if (editor.state.selection.empty) {
-      editor.chain().focus().insertContent(`<a href="${url}">${url}</a>`).run();
-    } else {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-    }
-  }, [editor]);
+  const handleSetLink = useCallback(
+    (url: string) => {
+      setShowLinkPopover(false);
+      if (!editor) return;
+      if (!url) {
+        editor.chain().focus().unsetLink().run();
+        return;
+      }
+      // If no text is selected, insert the URL as text and linkify it
+      if (editor.state.selection.empty) {
+        editor.chain().focus().insertContent(`<a href="${url}">${url}</a>`).run();
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      }
+    },
+    [editor]
+  );
 
   if (!editor) return null;
 
@@ -189,42 +194,82 @@ export default function TiptapEditor({
       {editable && (
         <div className="relative flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-warm-gray-200 bg-warm-gray-100">
           {/* Undo / Redo */}
-          <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            title="Undo"
+          >
             <Undo size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()} title="Redo">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            title="Redo"
+          >
             <Redo size={14} />
           </ToolbarButton>
 
           <Divider />
 
           {/* Headings */}
-          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })} title="Heading 1">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            isActive={editor.isActive('heading', { level: 1 })}
+            title="Heading 1"
+          >
             <Heading1 size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })} title="Heading 2">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            isActive={editor.isActive('heading', { level: 2 })}
+            title="Heading 2"
+          >
             <Heading2 size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive('heading', { level: 3 })} title="Heading 3">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            isActive={editor.isActive('heading', { level: 3 })}
+            title="Heading 3"
+          >
             <Heading3 size={14} />
           </ToolbarButton>
 
           <Divider />
 
           {/* Marks */}
-          <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Bold">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            isActive={editor.isActive('bold')}
+            title="Bold"
+          >
             <Bold size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')} title="Italic">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            isActive={editor.isActive('italic')}
+            title="Italic"
+          >
             <Italic size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive('strike')} title="Strikethrough">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            isActive={editor.isActive('strike')}
+            title="Strikethrough"
+          >
             <Strikethrough size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleHighlight().run()} isActive={editor.isActive('highlight')} title="Highlight">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHighlight().run()}
+            isActive={editor.isActive('highlight')}
+            title="Highlight"
+          >
             <span className="text-xs font-bold">H</span>
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} isActive={editor.isActive('code')} title="Inline code">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            isActive={editor.isActive('code')}
+            title="Inline code"
+          >
             <Code size={14} />
           </ToolbarButton>
 
@@ -248,7 +293,10 @@ export default function TiptapEditor({
             )}
           </div>
           {editor.isActive('link') && (
-            <ToolbarButton onClick={() => editor.chain().focus().unsetLink().run()} title="Remove link">
+            <ToolbarButton
+              onClick={() => editor.chain().focus().unsetLink().run()}
+              title="Remove link"
+            >
               <Unlink size={14} />
             </ToolbarButton>
           )}
@@ -256,24 +304,41 @@ export default function TiptapEditor({
           <Divider />
 
           {/* Lists */}
-          <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')} title="Bullet list">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            isActive={editor.isActive('bulletList')}
+            title="Bullet list"
+          >
             <List size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} isActive={editor.isActive('orderedList')} title="Ordered list">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            isActive={editor.isActive('orderedList')}
+            title="Ordered list"
+          >
             <ListOrdered size={14} />
           </ToolbarButton>
 
           <Divider />
 
           {/* Blocks */}
-          <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} isActive={editor.isActive('blockquote')} title="Blockquote">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            isActive={editor.isActive('blockquote')}
+            title="Blockquote"
+          >
             <Quote size={14} />
           </ToolbarButton>
-          <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Horizontal rule">
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            title="Horizontal rule"
+          >
             <Minus size={14} />
           </ToolbarButton>
           <ToolbarButton
-            onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            onClick={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
             title="Insert table"
           >
             <TableIcon size={14} />

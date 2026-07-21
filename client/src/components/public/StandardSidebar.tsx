@@ -20,7 +20,9 @@ function VersionStatusLabel({ status }: { status: string }) {
   };
   const cfg = map[status] ?? map['DRAFT'];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}
+    >
       {cfg.label}
     </span>
   );
@@ -74,13 +76,25 @@ function TocItem({
         <span className="leading-snug">{section.title}</span>
       </button>
       {children.map((child) => (
-        <TocItem key={child.id} section={child} allSections={allSections} activeId={activeId} search={search} depth={depth + 1} />
+        <TocItem
+          key={child.id}
+          section={child}
+          allSections={allSections}
+          activeId={activeId}
+          search={search}
+          depth={depth + 1}
+        />
       ))}
     </div>
   );
 }
 
-export default function StandardSidebar({ standardSlug, versions, activeVersionId, sections }: Props) {
+export default function StandardSidebar({
+  standardSlug,
+  versions,
+  activeVersionId,
+  sections,
+}: Props) {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [versionOpen, setVersionOpen] = useState(false);
@@ -107,7 +121,9 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
       const el = document.getElementById(`section-${section.id}`);
       if (!el) return;
       const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) setActiveSection(section.id); },
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveSection(section.id);
+        },
         { rootMargin: '-20% 0px -70% 0px', threshold: 0 }
       );
       obs.observe(el);
@@ -117,19 +133,27 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
   }, [sections]);
 
   const activeVersion = versions.find((v) => v.id === activeVersionId);
-  const rootSections = sections.filter((s) => !s.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
+  const rootSections = sections
+    .filter((s) => !s.parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const handleVersionSelect = useCallback((version: VersionSummary) => {
-    setVersionOpen(false);
-    setConsultationPopover(null);
-    router.push(`/standards/${standardSlug}/${version.slug}`);
-  }, [router, standardSlug]);
+  const handleVersionSelect = useCallback(
+    (version: VersionSummary) => {
+      setVersionOpen(false);
+      setConsultationPopover(null);
+      router.push(`/standards/${standardSlug}/${version.slug}`);
+    },
+    [router, standardSlug]
+  );
 
   return (
     <aside className="flex flex-col gap-5">
       {/* Search */}
       <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray-400 pointer-events-none" />
+        <Search
+          size={14}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray-400 pointer-events-none"
+        />
         <input
           type="text"
           placeholder="Search sections…"
@@ -147,12 +171,16 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
             className="w-full flex items-center justify-between px-3 py-2.5 border border-warm-gray-200 rounded-lg bg-white text-sm font-medium text-charcoal-900 hover:border-warm-gray-300 transition-colors"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="font-semibold truncate">{activeVersion?.versionLabel ?? 'Select version'}</span>
+              <span className="font-semibold truncate">
+                {activeVersion?.versionLabel ?? 'Select version'}
+              </span>
               {activeVersion && <VersionStatusLabel status={activeVersion.status} />}
             </div>
-            {versionOpen
-              ? <ChevronUp size={15} className="shrink-0 text-warm-gray-500" />
-              : <ChevronDown size={15} className="shrink-0 text-warm-gray-500" />}
+            {versionOpen ? (
+              <ChevronUp size={15} className="shrink-0 text-warm-gray-500" />
+            ) : (
+              <ChevronDown size={15} className="shrink-0 text-warm-gray-500" />
+            )}
           </button>
 
           {versionOpen && (
@@ -162,7 +190,9 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
                   <button
                     onClick={() => {
                       if (version.status === 'PUBLIC_CONSULTATION') {
-                        setConsultationPopover(consultationPopover === version.id ? null : version.id);
+                        setConsultationPopover(
+                          consultationPopover === version.id ? null : version.id
+                        );
                       } else {
                         handleVersionSelect(version);
                       }
@@ -177,14 +207,26 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
                       <VersionStatusLabel status={version.status} />
                       {version.certifiedAt && (
                         <span className="text-xs text-warm-gray-500">
-                          {new Date(version.certifiedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(version.certifiedAt).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
                         </span>
                       )}
                       {version.consultationStartDate && version.consultationEndDate && (
                         <span className="text-xs text-warm-gray-500">
-                          {new Date(version.consultationStartDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(version.consultationStartDate).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
                           {' – '}
-                          {new Date(version.consultationEndDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(version.consultationEndDate).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
                         </span>
                       )}
                     </div>
@@ -200,13 +242,18 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
                         <ExternalLink size={14} /> View consultation
                       </button>
                       <button
-                        onClick={() => { setVersionOpen(false); setConsultationPopover(null); }}
+                        onClick={() => {
+                          setVersionOpen(false);
+                          setConsultationPopover(null);
+                        }}
                         className="w-full flex items-start gap-2 px-5 py-2.5 text-sm text-charcoal-700 hover:bg-warm-gray-200 transition-colors"
                       >
                         <MessageSquare size={14} className="mt-0.5 shrink-0" />
                         <span>
                           View Feedback
-                          <span className="block text-xs text-warm-gray-500">Feedback summary &amp; actions</span>
+                          <span className="block text-xs text-warm-gray-500">
+                            Feedback summary &amp; actions
+                          </span>
                         </span>
                       </button>
                     </div>
@@ -220,13 +267,22 @@ export default function StandardSidebar({ standardSlug, versions, activeVersionI
 
       {/* Table of Contents */}
       <div>
-        <p className="text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-2 px-2">Table of Contents</p>
+        <p className="text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-2 px-2">
+          Table of Contents
+        </p>
         <nav className="flex flex-col gap-0.5">
           {rootSections.length === 0 ? (
             <p className="text-xs text-warm-gray-500 px-2 py-2">No sections yet.</p>
           ) : (
             rootSections.map((section) => (
-              <TocItem key={section.id} section={section} allSections={sections} activeId={activeSection} search={search} depth={0} />
+              <TocItem
+                key={section.id}
+                section={section}
+                allSections={sections}
+                activeId={activeSection}
+                search={search}
+                depth={0}
+              />
             ))
           )}
         </nav>

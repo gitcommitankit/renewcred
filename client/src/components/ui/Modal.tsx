@@ -20,14 +20,7 @@ const sizeStyles: Record<string, string> = {
   xl: 'max-w-2xl',
 };
 
-export function Modal({
-  isOpen,
-  onClose,
-  title,
-  children,
-  footer,
-  size = 'md',
-}: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
   const handleEsc = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();

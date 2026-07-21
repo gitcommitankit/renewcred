@@ -8,11 +8,11 @@ services:
       POSTGRES_PASSWORD: renewcred_password
       POSTGRES_DB: renewcred_db
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U renewcred -d renewcred_db"]
+      test: ['CMD-SHELL', 'pg_isready -U renewcred -d renewcred_db']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
       dockerfile: server/Dockerfile
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - '4000:4000'
     environment:
       NODE_ENV: production
       SERVER_PORT: 4000
@@ -47,7 +47,7 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api/v1}
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       API_URL: ${API_URL:-http://server:4000/api/v1}

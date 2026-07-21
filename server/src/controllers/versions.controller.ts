@@ -7,7 +7,10 @@ export class VersionsController {
 
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
-      const version = await VersionsService.getBySlug(req.params.slug as string, req.params.versionSlug as string);
+      const version = await VersionsService.getBySlug(
+        req.params.slug as string,
+        req.params.versionSlug as string
+      );
       res.json(ApiResponse.success(version));
     } catch (error) {
       next(error);
@@ -22,8 +25,6 @@ export class VersionsController {
       next(error);
     }
   }
-
-
 
   // ── Admin endpoints (authenticate middleware required) ────────────
 

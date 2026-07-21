@@ -12,10 +12,9 @@ export const metadata: Metadata = {
 
 async function getStandards(): Promise<Standard[]> {
   try {
-    const res = await fetch(
-      `${API_URL}/standards`,
-      { next: { tags: ['standards-list'], revalidate: 3600 } }
-    );
+    const res = await fetch(`${API_URL}/standards`, {
+      next: { tags: ['standards-list'], revalidate: 3600 },
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return data.data ?? [];
@@ -39,7 +38,9 @@ export default async function StandardsPage() {
             RenewCred Standards
           </h1>
           <p className="text-lg text-charcoal-600 leading-relaxed max-w-2xl">
-            Our standards are developed through rigorous scientific processes, stakeholder consultation, and independent review. Each standard provides clear, measurable criteria for climate impact verification.
+            Our standards are developed through rigorous scientific processes, stakeholder
+            consultation, and independent review. Each standard provides clear, measurable criteria
+            for climate impact verification.
           </p>
         </div>
       </section>
@@ -49,7 +50,9 @@ export default async function StandardsPage() {
         {standards.length === 0 ? (
           <div className="text-center py-16 text-charcoal-600">
             <p className="text-lg">No standards are currently published.</p>
-            <p className="text-sm mt-2 text-warm-gray-500">Check back soon as we publish our certification frameworks.</p>
+            <p className="text-sm mt-2 text-warm-gray-500">
+              Check back soon as we publish our certification frameworks.
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-warm-gray-200">
@@ -65,16 +68,17 @@ export default async function StandardsPage() {
                     <h2 className="text-2xl font-bold text-charcoal-900 mb-3 group-hover:text-brand-red transition-colors">
                       {standard.title}
                     </h2>
-                    <p className="text-charcoal-600 leading-relaxed mb-4">
-                      {standard.description}
-                    </p>
+                    <p className="text-charcoal-600 leading-relaxed mb-4">{standard.description}</p>
                     <div className="flex justify-end">
                       <Link
                         href={`/standards/${standard.slug}`}
                         className="inline-flex items-center gap-2 text-sm font-semibold text-brand-red hover:text-brand-red-dark transition-colors group/link"
                       >
                         Read more
-                        <ArrowRight size={16} className="transition-transform group-hover/link:translate-x-1" />
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform group-hover/link:translate-x-1"
+                        />
                       </Link>
                     </div>
                   </div>

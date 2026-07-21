@@ -106,7 +106,10 @@ export default function Header() {
             );
           })}
           <div className="pt-2 border-t border-warm-gray-200">
-            <Link href="/standards" className="block w-full text-center px-4 py-2.5 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors">
+            <Link
+              href="/standards"
+              className="block w-full text-center px-4 py-2.5 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors"
+            >
               Registry
             </Link>
           </div>

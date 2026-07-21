@@ -14,7 +14,9 @@ export default function Page() {
             Coming Soon
           </span>
           <h1 className="text-4xl font-bold text-charcoal-900 mb-4 capitalize">climate-and-us</h1>
-          <p className="text-charcoal-600 max-w-xl">This page is currently being built. Check back soon.</p>
+          <p className="text-charcoal-600 max-w-xl">
+            This page is currently being built. Check back soon.
+          </p>
         </div>
       </section>
     </main>
