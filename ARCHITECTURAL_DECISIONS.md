@@ -20,7 +20,6 @@ The Express backend follows a clear **Routes → Controllers → Services** stru
 - **Controllers** act strictly as HTTP adapters (parsing request params/query/body, setting status codes, formatting JSON responses).
 - **Services** encapsulate all business logic, database queries, and transaction management.
 - **Validation:** Request body and parameter schema validation is handled at the route level using **Zod** middleware. Controller code can safely assume incoming data matches expected types.
-- **Why not NestJS?** Given the scope of 3 core entities (Standards, Versions, Sections), NestJS's dependency injection and decorator overhead felt like unnecessary complexity. A clean 3-layer Express architecture provides clear separation of concerns without framework bloat.
 
 ---
 
