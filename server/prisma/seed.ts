@@ -423,6 +423,60 @@ async function main() {
   console.log('📧 Admin login credentials:');
   console.log(`   Email: ${process.env.SEED_ADMIN_EMAIL || 'admin@renewcred.com'}`);
   console.log(`   Password: ${process.env.SEED_ADMIN_PASSWORD || 'Admin@123'}`);
+
+  // ---- Bust Next.js ISR cache so seeded data appears immediately ----
+  await revalidateNextjs();
+}
+
+/**
+ * Calls the Next.js /api/revalidate endpoint to purge tag-based ISR caches.
+ * Retries up to 5 times with exponential back-off to handle cases where the
+ * Next.js container may still be starting up when the seed finishes.
+ */
+async function revalidateNextjs(): Promise<void> {
+  const baseUrl =
+    process.env.CLIENT_URL ||
+    process.env.CORS_ORIGIN ||
+    'http://localhost:3000';
+
+  const url = `${baseUrl}/api/revalidate`;
+  const tags = ['standards-list'];
+  const paths = ['/standards', '/'];
+
+  const maxRetries = 5;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tags, paths }),
+      });
+
+      if (res.ok) {
+        console.log('🔄 Next.js ISR cache revalidated successfully');
+        return;
+      }
+
+      const text = await res.text();
+      console.warn(
+        `⚠️  Revalidate attempt ${attempt}/${maxRetries} failed (HTTP ${res.status}): ${text}`,
+      );
+    } catch (err) {
+      console.warn(
+        `⚠️  Revalidate attempt ${attempt}/${maxRetries} error: ${err instanceof Error ? err.message : err}`,
+      );
+    }
+
+    if (attempt < maxRetries) {
+      const delay = 2 ** attempt * 500; // 1s, 2s, 4s, 8s
+      console.log(`   Retrying in ${delay}ms…`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+
+  console.warn(
+    '⚠️  Could not reach Next.js revalidate endpoint after all retries. Pages will refresh on next ISR interval.',
+  );
 }
 
 main()
