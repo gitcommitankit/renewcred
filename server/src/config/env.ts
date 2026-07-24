@@ -9,7 +9,6 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('7d'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
-  CLIENT_URL: z.string().default('http://localhost:3000'),
   SEED_ADMIN_EMAIL: z.string().email().default('admin@renewcred.com'),
   SEED_ADMIN_PASSWORD: z.string().min(6).default('Admin@123'),
   SEED_ADMIN_NAME: z.string().default('Admin User'),
