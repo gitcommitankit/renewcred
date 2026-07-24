@@ -91,7 +91,6 @@ docker compose up --build -d
 
 # 3. Run migrations and seed initial data
 docker compose exec server npx prisma migrate deploy
-docker compose exec server node -e "require('./dist/index.js')" # ensure server is up
 docker compose exec server npx prisma db seed
 ```
 
