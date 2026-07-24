@@ -133,7 +133,7 @@ export default function EditStandardPage() {
             <Button type="submit" isLoading={isSaving}>
               Save Changes
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.back()}>
+            <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isSaving}>
               Cancel
             </Button>
           </div>

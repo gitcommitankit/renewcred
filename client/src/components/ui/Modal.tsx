@@ -3,6 +3,7 @@
 import { useEffect, useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import { Button } from './Button';
 
 interface ModalProps {
   isOpen: boolean;
@@ -125,19 +126,18 @@ export function ConfirmDialog({
       size="sm"
       footer={
         <>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-charcoal-600 hover:text-charcoal-900 rounded-lg hover:bg-warm-gray-100 transition-colors"
-          >
+          <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            isLoading={isLoading}
             onClick={onConfirm}
-            disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium bg-brand-red text-white rounded-lg hover:bg-brand-red-dark transition-colors disabled:opacity-50"
+            className="bg-brand-red border-brand-red text-white hover:bg-brand-red-dark"
           >
-            {isLoading ? 'Deleting…' : confirmLabel}
-          </button>
+            {confirmLabel}
+          </Button>
         </>
       }
     >

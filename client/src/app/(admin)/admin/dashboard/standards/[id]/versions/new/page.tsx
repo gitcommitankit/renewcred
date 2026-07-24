@@ -182,7 +182,12 @@ export default function NewVersionPage() {
             <Button type="submit" isLoading={isLoading}>
               Create & Add Sections
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => router.back()}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
           </div>

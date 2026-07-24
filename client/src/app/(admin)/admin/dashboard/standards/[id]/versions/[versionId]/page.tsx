@@ -28,7 +28,7 @@ import { ConfirmDialog } from '@/components/ui/Modal';
 import TiptapEditor from '@/components/editor/TiptapEditor';
 import { Input } from '@/components/ui/Input';
 import { VersionBadge } from '@/components/ui/Badge';
-import { Spinner } from '@/components/ui/Button';
+import { Button, Spinner } from '@/components/ui/Button';
 import { Section, TiptapDocument, TiptapNode } from '@/types';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
@@ -423,13 +423,15 @@ export default function VersionEditorPage() {
               <Loader2 size={13} className="animate-spin" /> Auto-saving…
             </span>
           )}
-          <button
+          <Button
+            size="sm"
             onClick={handleManualSave}
             disabled={!activeSection || isSaving}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-brand-red text-white rounded-lg hover:bg-brand-red-dark transition-colors disabled:opacity-50"
+            isLoading={isSaving}
+            leftIcon={!isSaving && <Save size={14} />}
           >
-            <Save size={14} /> Save
-          </button>
+            Save
+          </Button>
         </div>
       </div>
 
@@ -475,19 +477,23 @@ export default function VersionEditorPage() {
                 ))}
               </select>
               <div className="flex gap-2">
-                <button
+                <Button
+                  size="sm"
                   onClick={handleCreateSection}
-                  disabled={isCreating}
-                  className="flex-1 py-1.5 text-xs font-medium bg-brand-red text-white rounded-lg hover:bg-brand-red-dark transition-colors"
+                  isLoading={isCreating}
+                  className="flex-1"
                 >
-                  {isCreating ? 'Creating…' : 'Create'}
-                </button>
-                <button
+                  Create
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => setShowNewSection(false)}
-                  className="flex-1 py-1.5 text-xs font-medium border border-warm-gray-300 text-charcoal-600 rounded-lg hover:bg-warm-gray-100 transition-colors"
+                  disabled={isCreating}
+                  className="flex-1"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           )}

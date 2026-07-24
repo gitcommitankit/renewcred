@@ -46,10 +46,12 @@ export function Button({
     <button
       {...props}
       disabled={isDisabled}
+      aria-busy={isLoading}
       className={[
         'inline-flex items-center justify-center font-medium transition-all duration-150',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-red',
         'disabled:opacity-50 disabled:cursor-not-allowed',
+        isLoading ? 'pointer-events-none' : '',
         variantStyles[variant],
         sizeStyles[size],
         className,

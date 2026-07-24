@@ -152,7 +152,12 @@ export default function NewStandardPage() {
             <Button type="submit" isLoading={isLoading}>
               Create Standard
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.back()}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => router.back()}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
           </div>
