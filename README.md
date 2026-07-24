@@ -92,6 +92,11 @@ docker compose up --build -d
 # 3. Run migrations and seed initial data
 docker compose exec server npx prisma migrate deploy
 docker compose exec server npx prisma db seed
+
+# 4. Manually trigger Next.js cache revalidation (if not done automatically from seed.ts)
+curl -X POST "http://localhost:3000/api/revalidate" \
+  -H "Content-Type: application/json" \
+  -d '{"tags": ["standards-list"], "paths": ["/standards", "/"]}'
 ```
 
 | Service     | URL                               |
@@ -117,6 +122,11 @@ pnpm db:seed       # Seed sample data
 
 # 4. Start the full application (live hot-reloading)
 pnpm dev           # Starts both backend (4000) and frontend (3000)
+
+# 5. Manually trigger Next.js cache revalidation (if not done automatically from seed.ts)
+curl -X POST "http://localhost:3000/api/revalidate" \
+  -H "Content-Type: application/json" \
+  -d '{"tags": ["standards-list"], "paths": ["/standards", "/"]}'
 ```
 
 ### Root-level Scripts
