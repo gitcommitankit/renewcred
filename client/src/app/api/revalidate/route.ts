@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     ) {
       return NextResponse.json(
         { error: 'At least one of paths or tags must be a non-empty array' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 

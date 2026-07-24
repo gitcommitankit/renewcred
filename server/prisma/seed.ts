@@ -434,10 +434,7 @@ async function main() {
  * Next.js container may still be starting up when the seed finishes.
  */
 async function revalidateNextjs(): Promise<void> {
-  const baseUrl =
-    process.env.CLIENT_URL ||
-    process.env.CORS_ORIGIN ||
-    'http://localhost:3000';
+  const baseUrl = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:3000';
 
   const url = `${baseUrl}/api/revalidate`;
   const tags = ['standards-list'];
@@ -459,11 +456,11 @@ async function revalidateNextjs(): Promise<void> {
 
       const text = await res.text();
       console.warn(
-        `⚠️  Revalidate attempt ${attempt}/${maxRetries} failed (HTTP ${res.status}): ${text}`,
+        `⚠️  Revalidate attempt ${attempt}/${maxRetries} failed (HTTP ${res.status}): ${text}`
       );
     } catch (err) {
       console.warn(
-        `⚠️  Revalidate attempt ${attempt}/${maxRetries} error: ${err instanceof Error ? err.message : err}`,
+        `⚠️  Revalidate attempt ${attempt}/${maxRetries} error: ${err instanceof Error ? err.message : err}`
       );
     }
 
@@ -475,7 +472,7 @@ async function revalidateNextjs(): Promise<void> {
   }
 
   console.warn(
-    '⚠️  Could not reach Next.js revalidate endpoint after all retries. Pages will refresh on next ISR interval.',
+    '⚠️  Could not reach Next.js revalidate endpoint after all retries. Pages will refresh on next ISR interval.'
   );
 }
 
