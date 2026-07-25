@@ -3,7 +3,9 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// Helper: Create Tiptap JSON content
+// ---------------------------------------------------------------------------
+// Tiptap JSON content helpers
+// ---------------------------------------------------------------------------
 
 function tiptapDoc(...content: unknown[]) {
   return { type: 'doc', content };
@@ -45,117 +47,636 @@ function orderedList(...items: string[]) {
   };
 }
 
-// Section content builders
+// ---------------------------------------------------------------------------
+// Section titles shared by every standard (numbering/structure is identical
+// across standards; only the substantive content differs)
+// ---------------------------------------------------------------------------
 
-const sectionContents: Record<string, object> = {
-  'ev-1.0': tiptapDoc(
-    paragraph(
-      'Electric vehicles (EVs) represent a fundamental shift in transportation, offering significant potential for reducing greenhouse gas emissions from the transport sector. This standard establishes the framework for evaluating and certifying carbon credits generated through EV adoption programs.'
-    ),
-    paragraph(
-      'The scope of this standard covers battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs) deployed in commercial and passenger vehicle categories. It defines the methodology for calculating emission reductions relative to internal combustion engine (ICE) baseline vehicles.'
-    ),
-    paragraph(
-      'Key considerations include the carbon intensity of the electricity grid, vehicle efficiency ratings, and the lifecycle emissions of battery production and disposal. The standard aims to provide a transparent and verifiable approach to quantifying the climate benefits of electric vehicle deployment.'
-    ),
-    bulletList(
-      'Applies to battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs)',
-      'Covers both commercial fleet and passenger vehicle categories',
-      'Includes grid emission factor calculations',
-      'Addresses battery lifecycle considerations'
-    )
-  ),
-  'ev-2.0': tiptapDoc(
-    paragraph(
-      'Future versions of the EV standard will incorporate advancements in battery technology, including solid-state batteries and improved recycling processes. The methodology will be updated to reflect changing grid emission factors as renewable energy penetration increases globally.'
-    ),
-    paragraph(
-      'Planned enhancements include support for vehicle-to-grid (V2G) technology credits, autonomous vehicle fleet optimization benefits, and integration with smart charging infrastructure that maximizes renewable energy utilization.'
-    )
-  ),
-  'ev-2.1': tiptapDoc(
-    paragraph(
-      'Version 2.1 will introduce refined calculations for the carbon footprint of battery manufacturing, incorporating data from leading battery producers. This update will also address the growing market for second-life battery applications in stationary energy storage.'
-    ),
-    paragraph(
-      'The revision will include standardized approaches for assessing the environmental impact of critical mineral extraction used in battery production, including lithium, cobalt, and nickel supply chains.'
-    )
-  ),
-  'ev-3.0': tiptapDoc(
-    paragraph(
-      'Version 3.0 represents a major revision that will expand the standard to cover emerging electric mobility solutions including electric aviation, marine vessels, and heavy-duty trucking. This version will also introduce a comprehensive lifecycle assessment methodology.'
-    ),
-    orderedList(
-      'Electric aviation credit methodology',
-      'Marine vessel electrification standards',
-      'Heavy-duty trucking and logistics frameworks',
-      'Comprehensive lifecycle assessment integration'
-    )
-  ),
-
-  'biochar-1.0': tiptapDoc(
-    paragraph(
-      'Biochar is a carbon-rich material produced through the pyrolysis of organic biomass in a low-oxygen environment. This standard provides the framework for certifying carbon removal credits from biochar production and application.'
-    ),
-    paragraph(
-      'The permanence of carbon sequestration through biochar is a key advantage, with studies indicating stability over centuries to millennia when applied to soils. This standard establishes monitoring, reporting, and verification (MRV) requirements to ensure the integrity of biochar carbon credits.'
-    ),
-    bulletList(
-      'Defines eligible feedstock sources and sustainability criteria',
-      'Establishes pyrolysis process requirements and emission controls',
-      'Sets durability and permanence verification protocols',
-      'Includes soil application guidelines and monitoring requirements'
-    )
-  ),
-  'biochar-2.0': tiptapDoc(
-    paragraph(
-      'Future versions will expand the scope to include novel biochar applications beyond soil amendment, such as construction materials, water filtration systems, and industrial carbon storage. Updated methodologies will incorporate improved understanding of biochar stability across different soil types and climatic conditions.'
-    )
-  ),
-
-  'methane-1.0': tiptapDoc(
-    paragraph(
-      'Methane is a potent greenhouse gas with a global warming potential approximately 80 times that of carbon dioxide over a 20-year period. This standard establishes methodologies for quantifying emission reductions from methane capture and destruction projects across multiple sectors.'
-    ),
-    paragraph(
-      'The standard covers methane emissions from landfills, wastewater treatment facilities, coal mines, and oil and gas operations. It provides detailed guidance on baseline emission calculations, monitoring requirements, and verification procedures.'
-    ),
-    bulletList(
-      'Landfill gas capture and utilization projects',
-      'Agricultural methane reduction (enteric fermentation, manure management)',
-      'Coal mine methane drainage and oxidation',
-      'Oil and gas fugitive emission detection and repair (LDAR) programs'
-    )
-  ),
-  'methane-2.0': tiptapDoc(
-    paragraph(
-      'Upcoming revisions will incorporate satellite-based methane monitoring data to improve baseline accuracy and enable continuous verification of emission reductions. The standard will also address emerging technologies for methane oxidation and conversion.'
-    )
-  ),
-
-  'renewable-1.0': tiptapDoc(
-    paragraph(
-      'Renewable energy projects play a critical role in the transition to a low-carbon economy. This standard provides methodologies for certifying carbon credits from solar, wind, hydro, geothermal, and biomass energy generation that displaces fossil fuel-based electricity.'
-    ),
-    paragraph(
-      'The standard addresses additionality requirements, ensuring that credited projects represent genuine emission reductions beyond what would have occurred under business-as-usual scenarios. It includes provisions for grid-connected and off-grid renewable energy systems.'
-    ),
-    orderedList(
-      'Solar photovoltaic and concentrated solar power',
-      'Onshore and offshore wind energy',
-      'Small and large hydroelectric installations',
-      'Geothermal energy projects',
-      'Sustainable biomass energy generation'
-    )
-  ),
-  'renewable-2.0': tiptapDoc(
-    paragraph(
-      'Future versions will address emerging renewable energy technologies including green hydrogen production, advanced energy storage systems, and ocean energy (tidal and wave power). The standard will also incorporate updated grid emission factors reflecting the increasing share of renewables in national energy mixes.'
-    )
-  ),
+const SECTION_TITLES: Record<string, string> = {
+  '1.0': 'Introduction',
+  '2.0': 'Scope and Applicability',
+  '2.1': 'Eligibility Criteria',
+  '2.1.1': 'Project Eligibility Requirements',
+  '2.1.2': 'Geographic and Regulatory Eligibility',
+  '2.2': 'Baseline and Additionality',
+  '3.0': 'Monitoring, Reporting and Verification',
+  '3.1': 'Monitoring Requirements',
+  '3.1.1': 'Data Collection and Instrumentation',
+  '3.1.2': 'Quality Assurance and Quality Control',
+  '3.2': 'Verification and Validation',
 };
 
+// ---------------------------------------------------------------------------
+// Per-standard content
+// Each entry provides: a short marketing description (for the Standard
+// record) and full Tiptap content for every section number.
+// ---------------------------------------------------------------------------
+
+type StandardSeed = {
+  title: string;
+  slug: string;
+  icon: string;
+  sortOrder: number;
+  description: string;
+  sections: Record<string, object>;
+};
+
+const standards: StandardSeed[] = [
+  {
+    title: 'EV',
+    slug: 'ev',
+    icon: '🔋',
+    sortOrder: 0,
+    description:
+      'A methodology for quantifying and certifying carbon credits generated by the deployment of battery electric and plug-in hybrid vehicle fleets in place of internal combustion engine baselines, covering commercial, ride-hailing, delivery and transit applications.',
+    sections: {
+      '1.0': tiptapDoc(
+        paragraph(
+          'Electric vehicles (EVs) represent a fundamental shift in transportation, offering significant potential for reducing greenhouse gas emissions from the transport sector. This standard establishes the framework for evaluating and certifying carbon credits generated through EV adoption programs.'
+        ),
+        paragraph(
+          'The scope of this standard covers battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs) deployed in commercial and passenger vehicle categories. It defines the methodology for calculating emission reductions relative to internal combustion engine (ICE) baseline vehicles.'
+        ),
+        paragraph(
+          'Key considerations include the carbon intensity of the electricity grid, vehicle efficiency ratings, and the lifecycle emissions of battery production and disposal. The standard aims to provide a transparent and verifiable approach to quantifying the climate benefits of electric vehicle deployment.'
+        ),
+        bulletList(
+          'Applies to battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs)',
+          'Covers both commercial fleet and passenger vehicle categories',
+          'Includes grid emission factor calculations',
+          'Addresses battery lifecycle considerations'
+        )
+      ),
+      '2.0': tiptapDoc(
+        paragraph(
+          'This standard applies to battery electric vehicle (BEV) and plug-in hybrid electric vehicle (PHEV) deployment programs operated by fleet owners, ride-hailing platforms, logistics companies, and public transit agencies. Eligible activities include the replacement of internal combustion engine (ICE) vehicles with electric equivalents, and the electrification of last-mile delivery and shared mobility services.'
+        ),
+        paragraph(
+          'The standard does not cover passenger vehicles used exclusively for personal, non-commercial transport, nor does it apply to EV charging infrastructure projects in isolation. Charging infrastructure may only be credited where it is directly tied to a monitored vehicle fleet under this methodology.'
+        ),
+        bulletList(
+          'Battery electric vehicle (BEV) fleet conversions',
+          'Plug-in hybrid electric vehicle (PHEV) deployment with verified electric-mode utilization',
+          'Electrified ride-hailing and car-sharing fleets',
+          'Electrified last-mile delivery and logistics fleets'
+        )
+      ),
+      '2.1': tiptapDoc(
+        paragraph(
+          'Projects seeking certification under this standard must satisfy the following eligibility criteria in addition to any project-type and geographic requirements set out in Sections 2.1.1 and 2.1.2.'
+        ),
+        bulletList(
+          'Vehicles must be registered, insured, and legally operated in the project jurisdiction for the full crediting period',
+          'Project proponents must demonstrate a documented baseline fleet composed of comparable ICE vehicles',
+          'Vehicles must be equipped with telematics or odometer systems capable of recording distance traveled and energy consumption',
+          'Electric vehicles must remain in active commercial service for a minimum of three years from the deployment date'
+        )
+      ),
+      '2.1.1': tiptapDoc(
+        paragraph(
+          'At the project level, proponents must demonstrate the following before a fleet is accepted into the crediting program.'
+        ),
+        bulletList(
+          'Minimum fleet size of 10 vehicles, or equivalent aggregated micro-fleets under a single monitoring program',
+          'Vehicle class and duty cycle matching the declared ICE baseline within the tolerance bands defined in Appendix B',
+          'Retained proof of vehicle purchase or lease, and confirmation that no prior claim of the same emission reduction has been made under another program',
+          'No vehicle transferred from a prior EV crediting program still receiving credits for the same reporting period (no double counting)'
+        )
+      ),
+      '2.1.2': tiptapDoc(
+        paragraph(
+          'This standard may be applied in any jurisdiction that maintains a publicly available, regularly updated grid emission factor published by a national statistical or energy authority, and a functioning vehicle registration and insurance system that allows independent verification of fleet records.'
+        ),
+        paragraph(
+          'Where national grid emission factor data is unavailable or is more than three years old, project proponents must use the applicable regional or sub-national default values published in the standard\u2019s grid factor appendix, which is updated annually.'
+        )
+      ),
+      '2.2': tiptapDoc(
+        paragraph(
+          'The baseline scenario represents the continued operation of comparable internal combustion engine vehicles that would have been purchased or leased in the absence of the project. Baseline emissions are calculated using vehicle-kilometers traveled (VKT), a fleet-specific or default fuel consumption rate, and the applicable national fuel emission factor.'
+        ),
+        paragraph(
+          'Additionality is assessed through a regulatory surplus test confirming that EV adoption is not already mandated in the project jurisdiction, combined with either a barrier analysis or a benchmark test demonstrating that fleet electrification would not have occurred without carbon credit revenue.'
+        ),
+        bulletList(
+          'Grid emission factor (kg CO2e/kWh), applied on an annual, location-based basis',
+          'Vehicle-specific energy consumption (kWh/km), sourced from telematics or manufacturer specifications',
+          'Baseline fuel economy of the comparable ICE vehicle class',
+          'Battery manufacturing emissions, amortized over the vehicle\u2019s expected service life'
+        )
+      ),
+      '3.0': tiptapDoc(
+        paragraph(
+          'Monitoring, reporting and verification (MRV) under this standard follows an annual cycle. Project proponents are responsible for continuous data collection throughout the crediting period, compiling an annual monitoring report, and submitting supporting data to an accredited validation and verification body (VVB) for independent assessment.'
+        ),
+        paragraph(
+          'This section sets out the parameters that must be monitored, the data collection and instrumentation requirements, the quality assurance procedures proponents must follow, and the verification process applied before credits are issued.'
+        )
+      ),
+      '3.1': tiptapDoc(
+        paragraph(
+          'The following parameters must be monitored continuously and reported at the end of each crediting period.'
+        ),
+        bulletList(
+          'Total vehicle-kilometers traveled (VKT) per vehicle, per reporting period',
+          'Electricity consumed per charging session (kWh), disaggregated by vehicle where feasible',
+          'Vehicle uptime and utilization rate',
+          'State of charge and charging location (depot versus public network)'
+        )
+      ),
+      '3.1.1': tiptapDoc(
+        paragraph(
+          'Data supporting the monitored parameters must be collected using the following instrumentation and procedures.'
+        ),
+        bulletList(
+          'Telematics devices or onboard diagnostics (OBD-II) systems calibrated to manufacturer specification',
+          'Charging session logs exported directly from charge point management systems (CPMS)',
+          'Odometer readings cross-checked against telematics data at least quarterly',
+          'Data retained in a tamper-evident digital format for the full crediting period plus two years'
+        )
+      ),
+      '3.1.2': tiptapDoc(
+        paragraph(
+          'Project proponents must implement the following quality assurance and quality control procedures prior to submitting monitoring reports.'
+        ),
+        bulletList(
+          'Cross-validation of telematics data against fuel or energy billing records',
+          'Outlier detection for implausible VKT or energy consumption values',
+          'Conservative default-value substitution for any missing data periods, as specified in Appendix C',
+          'Independent data spot-checks on a minimum 5% sample of fleet vehicles each reporting period'
+        )
+      ),
+      '3.2': tiptapDoc(
+        paragraph(
+          'Verification is conducted annually by an accredited, independent validation and verification body (VVB). Verification combines a desk review of monitoring data with sample-based checks of underlying records and, where practical, a site visit or remote audit of a subset of fleet vehicles.'
+        ),
+        orderedList(
+          'Desk review of monitoring reports and supporting data',
+          'Sample-based verification of telematics and charging records',
+          'Site visit or remote video audit of a subset of fleet vehicles',
+          'Issuance of a verification opinion and calculation of verified emission reductions'
+        )
+      ),
+    },
+  },
+  {
+    title: 'Biochar',
+    slug: 'biochar',
+    icon: '🌿',
+    sortOrder: 1,
+    description:
+      'A methodology for certifying durable carbon removal credits from biochar production and application, covering feedstock sourcing, pyrolysis process controls, permanence testing, and soil or non-soil end uses.',
+    sections: {
+      '1.0': tiptapDoc(
+        paragraph(
+          'Biochar is a carbon-rich material produced through the pyrolysis of organic biomass in a low-oxygen environment. This standard provides the framework for certifying carbon removal credits from biochar production and application.'
+        ),
+        paragraph(
+          'The permanence of carbon sequestration through biochar is a key advantage, with studies indicating stability over centuries to millennia when applied to soils. This standard establishes monitoring, reporting, and verification (MRV) requirements to ensure the integrity of biochar carbon credits.'
+        ),
+        bulletList(
+          'Defines eligible feedstock sources and sustainability criteria',
+          'Establishes pyrolysis process requirements and emission controls',
+          'Sets durability and permanence verification protocols',
+          'Includes soil application guidelines and monitoring requirements'
+        )
+      ),
+      '2.0': tiptapDoc(
+        paragraph(
+          'This standard applies to facilities that convert biomass feedstock into biochar via pyrolysis or gasification, and to the subsequent application or storage of that biochar in a manner that qualifies as durable carbon storage. Eligible activities span feedstock preparation, pyrolysis operation, and end-use application.'
+        ),
+        paragraph(
+          'The standard does not cover combustion of biomass for energy without biochar co-production, nor does it apply to biochar used as a short-lived product (such as a fuel additive) where the carbon is expected to oxidize within a decade.'
+        ),
+        bulletList(
+          'Agricultural residue pyrolysis (crop stover, husks, shells)',
+          'Forestry and wood-processing residue biochar',
+          'Biochar soil amendment on cropland, pasture, or degraded land',
+          'Biochar incorporated into construction materials or other long-lived non-soil products'
+        )
+      ),
+      '2.1': tiptapDoc(
+        paragraph(
+          'Biochar projects must satisfy the following eligibility criteria before entering the crediting program.'
+        ),
+        bulletList(
+          'Feedstock must be sustainably sourced, with no biomass derived from primary or old-growth forest clearance',
+          'Pyrolysis units must meet minimum emission control and safety standards for the project jurisdiction',
+          'Produced biochar must meet a minimum stability threshold (molar H:Corg ratio \u2264 0.7) as verified by laboratory testing',
+          'End use of the biochar (soil, construction material, or other durable application) must be documented and monitored'
+        )
+      ),
+      '2.1.1': tiptapDoc(
+        paragraph(
+          'Individual pyrolysis facilities and feedstock supply chains must demonstrate the following before a project is accepted.'
+        ),
+        bulletList(
+          'Feedstock supply agreements or chain-of-custody records covering at least one full crediting period',
+          'Pyrolysis unit specifications, including operating temperature range and residence time',
+          'Batch-level record keeping linking feedstock inputs to biochar output volumes',
+          'No prior claim of the same sequestered carbon under another crediting program'
+        )
+      ),
+      '2.1.2': tiptapDoc(
+        paragraph(
+          'This standard applies in any jurisdiction where feedstock sourcing complies with applicable land-use and forestry regulations, and where the pyrolysis facility holds the necessary environmental operating permits.'
+        ),
+        paragraph(
+          'Feedstock sourcing is subject to a maximum transport radius, defined per project type in Appendix A, to limit transport-related emissions and to support verifiable chain-of-custody tracking back to the point of biomass origin.'
+        )
+      ),
+      '2.2': tiptapDoc(
+        paragraph(
+          'The baseline scenario is the counterfactual fate of the feedstock in the absence of the project, typically open-field burning, uncontrolled decomposition, or landfilling, each of which releases the biomass carbon as CO2 or methane over a short time horizon.'
+        ),
+        paragraph(
+          'Additionality is established by demonstrating that pyrolysis and biochar application would not occur without carbon credit revenue, using a barrier analysis (capital cost, technology, or common-practice barriers) supported by evidence that biochar production is not already mandated or standard practice in the project region.'
+        ),
+        bulletList(
+          'Feedstock carbon content and moisture content at intake',
+          'Pyrolysis temperature and residence time, which determine biochar yield and stability',
+          'Molar H:Corg ratio of the produced biochar, used to estimate permanence',
+          'Application rate and method, where biochar is applied to soil'
+        )
+      ),
+      '3.0': tiptapDoc(
+        paragraph(
+          'Monitoring, reporting and verification under this standard combines facility-level process monitoring with batch-level laboratory testing of biochar output. Project proponents submit an annual monitoring report supported by laboratory certificates and application records, which is reviewed by an accredited verification body.'
+        ),
+        paragraph(
+          'Because permanence depends on both the physical properties of the biochar and the conditions of its end use, this standard requires ongoing tracking of both production data and application or storage records.'
+        )
+      ),
+      '3.1': tiptapDoc(
+        paragraph(
+          'The following parameters must be monitored for every production batch and reported at the end of each crediting period.'
+        ),
+        bulletList(
+          'Feedstock mass and moisture content at intake',
+          'Pyrolysis temperature profile and residence time per batch',
+          'Biochar output mass and yield percentage',
+          'Application location (GPS-tagged) and application rate (tonnes per hectare), where applicable'
+        )
+      ),
+      '3.1.1': tiptapDoc(
+        paragraph(
+          'Data supporting the monitored parameters must be collected using the following methods.'
+        ),
+        bulletList(
+          'Calibrated weighbridges or load cells for feedstock and biochar mass measurement',
+          'Continuous temperature logging within the pyrolysis chamber',
+          'Accredited laboratory analysis of H:Corg ratio and organic carbon content for a representative sample of each batch',
+          'GPS-tagged application records or facility storage logs for the resulting biochar'
+        )
+      ),
+      '3.1.2': tiptapDoc(
+        paragraph(
+          'Project proponents must implement the following quality assurance and quality control procedures.'
+        ),
+        bulletList(
+          'Duplicate laboratory testing of at least 10% of batches to confirm analytical consistency',
+          'Cross-checking feedstock delivery records against supplier invoices or chain-of-custody documentation',
+          'Recalibration of weighbridges and temperature sensors on a documented schedule',
+          'Retention of all batch records and laboratory certificates for the crediting period plus five years'
+        )
+      ),
+      '3.2': tiptapDoc(
+        paragraph(
+          'Verification is conducted annually by an accredited, independent verification body, combining a desk review of production and application records with site visits to the pyrolysis facility and a sample of application sites.'
+        ),
+        orderedList(
+          'Desk review of batch records, laboratory certificates, and application logs',
+          'Site visit to the pyrolysis facility to confirm operating conditions and equipment calibration',
+          'Field verification of a sample of application sites, including soil sampling where required',
+          'Issuance of a verification opinion and calculation of verified carbon removal credits'
+        )
+      ),
+    },
+  },
+  {
+    title: 'Methane',
+    slug: 'methane',
+    icon: '💨',
+    sortOrder: 2,
+    description:
+      'A methodology for quantifying emission reductions from methane capture, destruction, and avoidance projects across landfills, coal mines, oil and gas operations, and agricultural and wastewater sources.',
+    sections: {
+      '1.0': tiptapDoc(
+        paragraph(
+          'Methane is a potent greenhouse gas with a global warming potential approximately 80 times that of carbon dioxide over a 20-year period. This standard establishes methodologies for quantifying emission reductions from methane capture and destruction projects across multiple sectors.'
+        ),
+        paragraph(
+          'The standard covers methane emissions from landfills, wastewater treatment facilities, coal mines, and oil and gas operations. It provides detailed guidance on baseline emission calculations, monitoring requirements, and verification procedures.'
+        ),
+        bulletList(
+          'Landfill gas capture and utilization projects',
+          'Agricultural methane reduction (enteric fermentation, manure management)',
+          'Coal mine methane drainage and oxidation',
+          'Oil and gas fugitive emission detection and repair (LDAR) programs'
+        )
+      ),
+      '2.0': tiptapDoc(
+        paragraph(
+          'This standard applies to projects that capture, destroy, or otherwise avoid the release of methane that would, in the baseline scenario, be vented directly to the atmosphere. Eligible sectors include waste management, coal mining, oil and gas operations, agriculture, and wastewater treatment.'
+        ),
+        paragraph(
+          'The standard does not apply to methane destruction that is already required by law or regulation in the project jurisdiction, nor to projects that merely flare gas that would otherwise be captured and sold under existing market arrangements.'
+        ),
+        bulletList(
+          'Landfill gas capture, flaring, or utilization',
+          'Coal mine methane drainage and oxidation systems',
+          'Oil and gas fugitive emission detection and repair (LDAR) programs',
+          'Manure management and anaerobic digestion projects'
+        )
+      ),
+      '2.1': tiptapDoc(
+        paragraph(
+          'Methane projects must satisfy the following eligibility criteria before entering the crediting program.'
+        ),
+        bulletList(
+          'Continuous or periodic metering of captured and/or destroyed methane volumes must be in place',
+          'Destruction devices (flares, engines, or oxidizers) must meet a minimum destruction or oxidation efficiency of 99%, or the applicable technology-specific default',
+          'The project must not be mandated by existing law, regulation, or permit condition in the project jurisdiction',
+          'Facility must maintain calibration records for all metering and monitoring equipment'
+        )
+      ),
+      '2.1.1': tiptapDoc(
+        paragraph(
+          'Individual project sites must demonstrate the following before acceptance into the crediting program.'
+        ),
+        bulletList(
+          'Documented baseline methane generation or venting rate, using site-specific data or an approved default model',
+          'Installed capture, destruction, or avoidance equipment with manufacturer specifications on file',
+          'A monitoring plan identifying all metering points and data collection frequency',
+          'No prior claim of the same emission reduction under another crediting program or regulatory offset scheme'
+        )
+      ),
+      '2.1.2': tiptapDoc(
+        paragraph(
+          'This standard applies in jurisdictions that do not already mandate methane capture or destruction for the relevant facility type. Where a regulatory mandate exists but is not enforced in practice, proponents must provide evidence of a regulatory surplus assessment supporting eligibility.'
+        ),
+        paragraph(
+          'Facilities must also hold any environmental or operating permits required for the installed capture and destruction equipment, and must operate in a jurisdiction where third-party site access for verification purposes is legally permitted.'
+        )
+      ),
+      '2.2': tiptapDoc(
+        paragraph(
+          'The baseline scenario is the uncontrolled venting of methane to the atmosphere, or, where a partial capture system already exists, the pre-project capture and destruction rate. Baseline methane generation is estimated using site-specific measurements where available, or an approved default model (such as a first-order decay model for landfills).'
+        ),
+        paragraph(
+          'Additionality is demonstrated through a combination of a regulatory surplus test and either an investment analysis or barrier analysis showing that the capture and destruction system would not have been installed absent carbon credit revenue.'
+        ),
+        bulletList(
+          'Captured methane flow rate and concentration',
+          'Destruction or oxidation efficiency of the installed equipment',
+          'Baseline methane generation rate or historical venting data',
+          'Global warming potential factor applied (GWP20 or GWP100, as specified in the crediting request)'
+        )
+      ),
+      '3.0': tiptapDoc(
+        paragraph(
+          'Monitoring, reporting and verification under this standard relies on continuous or high-frequency metering of methane flow and destruction efficiency, supported where available by remote sensing data. Project proponents submit an annual monitoring report to an accredited verification body.'
+        ),
+        paragraph(
+          'Given the high global warming potential of methane, this standard places particular emphasis on the accuracy and calibration of flow metering and destruction efficiency measurement.'
+        )
+      ),
+      '3.1': tiptapDoc(
+        paragraph(
+          'The following parameters must be monitored and reported for each reporting period.'
+        ),
+        bulletList(
+          'Methane flow rate at the capture point (continuous or high-frequency periodic metering)',
+          'Methane concentration in the captured gas stream',
+          'Destruction or oxidation efficiency of flares, engines, or oxidizers',
+          'Equipment operating hours and any downtime periods'
+        )
+      ),
+      '3.1.1': tiptapDoc(
+        paragraph(
+          'Data supporting the monitored parameters must be collected using the following instrumentation and methods.'
+        ),
+        bulletList(
+          'Continuous flow meters calibrated to a recognized industry standard',
+          'Gas composition analyzers for methane concentration measurement',
+          'Periodic efficiency testing of destruction devices by a qualified technician',
+          'Satellite or aerial methane detection data used as a cross-validation check, where available'
+        )
+      ),
+      '3.1.2': tiptapDoc(
+        paragraph(
+          'Project proponents must implement the following quality assurance and quality control procedures.'
+        ),
+        bulletList(
+          'Regular calibration of flow meters and gas analyzers against a documented schedule',
+          'Cross-checking metered destruction data against equipment operating logs',
+          'Reconciliation of ground-based monitoring data with any available satellite methane observations',
+          'Conservative default substitution for any period of metering downtime'
+        )
+      ),
+      '3.2': tiptapDoc(
+        paragraph(
+          'Verification is conducted annually by an accredited, independent verification body, combining a desk review of metering data with a site visit to confirm equipment operation and calibration status.'
+        ),
+        orderedList(
+          'Desk review of monitoring reports, calibration certificates, and equipment logs',
+          'Site visit to inspect capture and destruction equipment and confirm operating conditions',
+          'Reconciliation of monitoring data against satellite or third-party methane observations where available',
+          'Issuance of a verification opinion and calculation of verified emission reductions'
+        )
+      ),
+    },
+  },
+  {
+    title: 'Renewable Energy',
+    slug: 'renewable-energy',
+    icon: '⚡',
+    sortOrder: 3,
+    description:
+      'A methodology for certifying carbon credits from grid-connected renewable electricity generation, including solar, wind, hydro, geothermal and biomass projects that displace fossil fuel-based generation.',
+    sections: {
+      '1.0': tiptapDoc(
+        paragraph(
+          'Renewable energy projects play a critical role in the transition to a low-carbon economy. This standard provides methodologies for certifying carbon credits from solar, wind, hydro, geothermal, and biomass energy generation that displaces fossil fuel-based electricity.'
+        ),
+        paragraph(
+          'The standard addresses additionality requirements, ensuring that credited projects represent genuine emission reductions beyond what would have occurred under business-as-usual scenarios. It includes provisions for grid-connected and off-grid renewable energy systems.'
+        ),
+        orderedList(
+          'Solar photovoltaic and concentrated solar power',
+          'Onshore and offshore wind energy',
+          'Small and large hydroelectric installations',
+          'Geothermal energy projects',
+          'Sustainable biomass energy generation'
+        )
+      ),
+      '2.0': tiptapDoc(
+        paragraph(
+          'This standard applies to new grid-connected renewable electricity generation facilities, and to off-grid or mini-grid renewable systems that displace diesel or other fossil-fuel-based generation. Eligible technologies include solar PV, onshore and offshore wind, small hydro, geothermal, and sustainable biomass.'
+        ),
+        paragraph(
+          'The standard does not apply to large hydroelectric facilities above 25 MW installed capacity, nor to biomass projects using feedstock that competes with food production or drives land-use change, both of which are addressed under separate standards.'
+        ),
+        bulletList(
+          'Utility-scale and distributed solar photovoltaic systems',
+          'Onshore and offshore wind energy',
+          'Small hydroelectric installations (\u2264 25 MW)',
+          'Geothermal and sustainable biomass energy generation'
+        )
+      ),
+      '2.1': tiptapDoc(
+        paragraph(
+          'Renewable energy projects must satisfy the following eligibility criteria before entering the crediting program.'
+        ),
+        bulletList(
+          'Facility must have a signed grid connection agreement or, for off-grid systems, documented displacement of fossil-fuel generation',
+          'Metered generation data must be available from a revenue-grade or equivalent calibrated meter',
+          'Renewable energy certificates (RECs) or equivalent attributes associated with the generation must not be sold or claimed separately from the carbon credits',
+          'Facility must not be already required to generate renewable electricity under a binding regulatory mandate'
+        )
+      ),
+      '2.1.1': tiptapDoc(
+        paragraph(
+          'Individual generation facilities must demonstrate the following before a project is accepted into the crediting program.'
+        ),
+        bulletList(
+          'Commissioning date and installed capacity, confirmed by an engineering certificate or commissioning report',
+          'A metering plan identifying the point of measurement and meter specifications',
+          'Evidence of financial close or construction start date, used to support the additionality assessment',
+          'No prior or concurrent claim of the same generation under another crediting program or REC registry'
+        )
+      ),
+      '2.1.2': tiptapDoc(
+        paragraph(
+          'This standard applies in any grid region for which a combined margin grid emission factor (build margin and operating margin) is published by a recognized national or international authority, or can be calculated using the standard\u2019s default methodology.'
+        ),
+        paragraph(
+          'Off-grid and mini-grid projects are eligible in jurisdictions where the displaced fossil-fuel generation source (typically diesel) can be documented through metering, fuel purchase records, or site-specific default values.'
+        )
+      ),
+      '2.2': tiptapDoc(
+        paragraph(
+          'The baseline scenario is the grid-connected electricity generation that would have occurred absent the project, represented by the combined margin grid emission factor, or, for off-grid systems, the fossil-fuel generation that would otherwise have been used.'
+        ),
+        paragraph(
+          'Additionality is assessed using either a positive list for de minimis capacity projects below a defined threshold, or a full investment and barrier analysis for larger projects, demonstrating that the facility would not be financially viable without carbon credit revenue.'
+        ),
+        bulletList(
+          'Grid emission factor (combined margin), updated on the schedule defined by the relevant grid authority',
+          'Metered renewable electricity generation (MWh) at the point of interconnection',
+          'Transmission and distribution loss factors, where the point of measurement differs from the point of consumption',
+          'Curtailment volumes, which are excluded from credited generation'
+        )
+      ),
+      '3.0': tiptapDoc(
+        paragraph(
+          'Monitoring, reporting and verification under this standard is based on metered generation data reconciled against grid operator records. Project proponents submit an annual monitoring report supported by meter readings and calibration certificates to an accredited verification body.'
+        ),
+        paragraph(
+          'Because emission reductions are directly proportional to metered output, this standard places particular emphasis on meter accuracy, calibration, and reconciliation with independent grid data.'
+        )
+      ),
+      '3.1': tiptapDoc(
+        paragraph(
+          'The following parameters must be monitored and reported for each reporting period.'
+        ),
+        bulletList(
+          'Net electricity generation (MWh) at the metering point',
+          'Applicable grid emission factor for the reporting year',
+          'Curtailment volumes and reasons for curtailment, where applicable',
+          'Facility availability and capacity factor'
+        )
+      ),
+      '3.1.1': tiptapDoc(
+        paragraph(
+          'Data supporting the monitored parameters must be collected using the following methods.'
+        ),
+        bulletList(
+          'Revenue-grade meters calibrated in accordance with national metering standards',
+          'Automated data logging with remote transmission where technically feasible',
+          'Grid operator settlement statements used to cross-check metered generation',
+          'Curtailment instructions or dispatch records retained as supporting evidence'
+        )
+      ),
+      '3.1.2': tiptapDoc(
+        paragraph(
+          'Project proponents must implement the following quality assurance and quality control procedures.'
+        ),
+        bulletList(
+          'Annual meter calibration or certification in line with the manufacturer\u2019s and regulator\u2019s requirements',
+          'Reconciliation of proponent-metered data against grid operator settlement data each reporting period',
+          'Documented procedure for identifying and correcting metering anomalies or data gaps',
+          'Retention of meter calibration certificates and generation data for the crediting period plus five years'
+        )
+      ),
+      '3.2': tiptapDoc(
+        paragraph(
+          'Verification is conducted annually by an accredited, independent verification body, combining a desk review of metering and grid reconciliation data with a site visit to confirm facility operation and meter installation.'
+        ),
+        orderedList(
+          'Desk review of monitoring reports, meter calibration certificates, and grid settlement data',
+          'Site visit to confirm installed capacity and metering configuration',
+          'Cross-check of REC or renewable attribute registries to confirm no double counting',
+          'Issuance of a verification opinion and calculation of verified emission reductions'
+        )
+      ),
+    },
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Section layout: number -> { slug, sortOrder, parentNumber }
+// This mirrors the original document tree (1.0, 2.0, 2.1 [+ 2.1.1, 2.1.2],
+// 2.2, 3.0, 3.1 [+ 3.1.1, 3.1.2], 3.2).
+// ---------------------------------------------------------------------------
+
+const SECTION_LAYOUT: {
+  number: string;
+  slug: string;
+  sortOrder: number;
+  parentNumber: string | null;
+}[] = [
+  { number: '1.0', slug: '1-0-introduction', sortOrder: 0, parentNumber: null },
+  { number: '2.0', slug: '2-0-scope-and-applicability', sortOrder: 1, parentNumber: null },
+  { number: '2.1', slug: '2-1-eligibility-criteria', sortOrder: 2, parentNumber: null },
+  {
+    number: '2.1.1',
+    slug: '2-1-1-project-eligibility-requirements',
+    sortOrder: 3,
+    parentNumber: '2.1',
+  },
+  {
+    number: '2.1.2',
+    slug: '2-1-2-geographic-and-regulatory-eligibility',
+    sortOrder: 4,
+    parentNumber: '2.1',
+  },
+  { number: '2.2', slug: '2-2-baseline-and-additionality', sortOrder: 5, parentNumber: null },
+  {
+    number: '3.0',
+    slug: '3-0-monitoring-reporting-and-verification',
+    sortOrder: 6,
+    parentNumber: null,
+  },
+  { number: '3.1', slug: '3-1-monitoring-requirements', sortOrder: 7, parentNumber: null },
+  {
+    number: '3.1.1',
+    slug: '3-1-1-data-collection-and-instrumentation',
+    sortOrder: 8,
+    parentNumber: '3.1',
+  },
+  {
+    number: '3.1.2',
+    slug: '3-1-2-quality-assurance-and-quality-control',
+    sortOrder: 9,
+    parentNumber: '3.1',
+  },
+  { number: '3.2', slug: '3-2-verification-and-validation', sortOrder: 10, parentNumber: null },
+];
+
+// ---------------------------------------------------------------------------
 // Seed function
+// ---------------------------------------------------------------------------
 
 async function main() {
   console.log('🌱 Starting seed...');
@@ -180,50 +701,18 @@ async function main() {
   console.log(`✅ Admin created: ${admin.email}`);
 
   // ---- Create standards ----
-  const standardsData = [
-    {
-      title: 'EV',
-      slug: 'ev',
-      description:
-        'Lorem ipsum dolor sit amet consectetur. Massa nec vulputate amet enim turpis elit odio fusce. Nunc cursus aliquet arcu vitae dolor ac rutrum pulvinar orci. Tristique nulla sed at nisl justo ipsum accumsan sed a. Enim amet varius ligula egestas. Integer vestibulum elementum non fermentum.',
-      icon: '🔋',
-      sortOrder: 0,
-      isPublished: true,
-    },
-    {
-      title: 'Biochar',
-      slug: 'biochar',
-      description:
-        'Lorem ipsum dolor sit amet consectetur. Massa nec vulputate amet enim turpis elit odio fusce. Nunc cursus aliquet arcu vitae dolor ac rutrum pulvinar orci. Tristique nulla sed at nisl justo ipsum accumsan sed a. Enim amet varius ligula egestas. Integer vestibulum elementum non fermentum.',
-      icon: '🌿',
-      sortOrder: 1,
-      isPublished: true,
-    },
-    {
-      title: 'Methane',
-      slug: 'methane',
-      description:
-        'Lorem ipsum dolor sit amet consectetur. Massa nec vulputate amet enim turpis elit odio fusce. Nunc cursus aliquet arcu vitae dolor ac rutrum pulvinar orci. Tristique nulla sed at nisl justo ipsum accumsan sed a. Enim amet varius ligula egestas. Integer vestibulum elementum non fermentum.',
-      icon: '💨',
-      sortOrder: 2,
-      isPublished: true,
-    },
-    {
-      title: 'Renewable Energy',
-      slug: 'renewable-energy',
-      description:
-        'Lorem ipsum dolor sit amet consectetur. Massa nec vulputate amet enim turpis elit odio fusce. Nunc cursus aliquet arcu vitae dolor ac rutrum pulvinar orci. Tristique nulla sed at nisl justo ipsum accumsan sed a. Enim amet varius ligula egestas. Integer vestibulum elementum non fermentum.',
-      icon: '⚡',
-      sortOrder: 3,
-      isPublished: true,
-    },
-  ];
-
-  for (const standardData of standardsData) {
-    const standard = await prisma.standard.create({ data: standardData });
+  for (const standardSeed of standards) {
+    const standard = await prisma.standard.create({
+      data: {
+        title: standardSeed.title,
+        slug: standardSeed.slug,
+        description: standardSeed.description,
+        icon: standardSeed.icon,
+        sortOrder: standardSeed.sortOrder,
+        isPublished: true,
+      },
+    });
     console.log(`✅ Standard created: ${standard.title}`);
-
-    const prefix = standard.slug === 'renewable-energy' ? 'renewable' : standard.slug;
 
     // ---- Create versions ----
     // Version 1: Public consultation (Draft/Consultation)
@@ -254,148 +743,59 @@ async function main() {
     console.log(`  📋 Versions created for ${standard.title}`);
 
     // ---- Create sections for the certified version ----
-    const sectionsToCreate = [
-      {
-        number: '1.0',
-        title: 'Introduction',
-        slug: '1-0-introduction',
-        sortOrder: 0,
-        parentId: null as string | null,
-        contentKey: `${prefix}-1.0`,
-      },
-      {
-        number: '2.0',
-        title: 'Future Versions',
-        slug: '2-0-future-versions',
-        sortOrder: 1,
-        parentId: null as string | null,
-        contentKey: `${prefix}-2.0`,
-      },
-      {
-        number: '2.1',
-        title: 'Future Versions',
-        slug: '2-1-future-versions',
-        sortOrder: 2,
-        parentId: null as string | null,
-        contentKey: `${prefix}-2.1`,
-      },
-      {
-        number: '2.2',
-        title: 'Future Versions',
-        slug: '2-2-future-versions',
-        sortOrder: 5,
-        parentId: null as string | null,
-        contentKey: `${prefix}-2.0`,
-      },
-      {
-        number: '3.0',
-        title: 'Future Versions',
-        slug: '3-0-future-versions',
-        sortOrder: 6,
-        parentId: null as string | null,
-        contentKey: `${prefix}-3.0`,
-      },
-      {
-        number: '3.1',
-        title: 'Future Versions',
-        slug: '3-1-future-versions',
-        sortOrder: 7,
-        parentId: null as string | null,
-        contentKey: `${prefix}-2.0`,
-      },
-      {
-        number: '3.2',
-        title: 'Future Versions',
-        slug: '3-2-future-versions',
-        sortOrder: 10,
-        parentId: null as string | null,
-        contentKey: `${prefix}-2.0`,
-      },
-    ];
-
-    // Create top-level sections first, then add children
     const createdSections: Record<string, string> = {};
 
-    for (const sectionData of sectionsToCreate) {
+    // Top-level sections first (parentNumber === null), then children, so
+    // that parentId can be resolved correctly regardless of layout order.
+    const topLevel = SECTION_LAYOUT.filter((s) => s.parentNumber === null);
+    const children = SECTION_LAYOUT.filter((s) => s.parentNumber !== null);
+
+    for (const layout of topLevel) {
       const content =
-        sectionContents[sectionData.contentKey] ||
-        sectionContents[`${prefix}-2.0`] ||
-        tiptapDoc(paragraph('Content coming soon.'));
+        standardSeed.sections[layout.number] || tiptapDoc(paragraph('Content coming soon.'));
 
       const section = await prisma.section.create({
         data: {
           versionId: certified.id,
-          number: sectionData.number,
-          title: sectionData.title,
-          slug: sectionData.slug,
+          number: layout.number,
+          title: SECTION_TITLES[layout.number] ?? layout.number,
+          slug: layout.slug,
           content: content as object,
-          sortOrder: sectionData.sortOrder,
-          parentId: sectionData.parentId,
+          sortOrder: layout.sortOrder,
+          parentId: null,
         },
       });
 
-      createdSections[sectionData.number] = section.id;
+      createdSections[layout.number] = section.id;
     }
 
-    // Create child sections (2.1.1, 2.1.2, 3.1.1, 3.1.2)
-    const childSections = [
-      {
-        number: '2.1.1',
-        title: 'Future Versions',
-        slug: '2-1-1-future-versions',
-        sortOrder: 3,
-        parentNumber: '2.1',
-      },
-      {
-        number: '2.1.2',
-        title: 'Future Versions',
-        slug: '2-1-2-future-versions',
-        sortOrder: 4,
-        parentNumber: '2.1',
-      },
-      {
-        number: '3.1.1',
-        title: 'Future Versions',
-        slug: '3-1-1-future-versions',
-        sortOrder: 8,
-        parentNumber: '3.1',
-      },
-      {
-        number: '3.1.2',
-        title: 'Future Versions',
-        slug: '3-1-2-future-versions',
-        sortOrder: 9,
-        parentNumber: '3.1',
-      },
-    ];
-
-    for (const child of childSections) {
+    for (const layout of children) {
       const content =
-        sectionContents[`${prefix}-2.0`] || tiptapDoc(paragraph('Content coming soon.'));
+        standardSeed.sections[layout.number] || tiptapDoc(paragraph('Content coming soon.'));
 
       await prisma.section.create({
         data: {
           versionId: certified.id,
-          number: child.number,
-          title: child.title,
-          slug: child.slug,
+          number: layout.number,
+          title: SECTION_TITLES[layout.number] ?? layout.number,
+          slug: layout.slug,
           content: content as object,
-          sortOrder: child.sortOrder,
-          parentId: createdSections[child.parentNumber] || null,
+          sortOrder: layout.sortOrder,
+          parentId: createdSections[layout.parentNumber as string] || null,
         },
       });
     }
 
-    // Also create sections for the public consultation version
+    // Also create the introduction section for the public consultation version
     const introContent =
-      sectionContents[`${prefix}-1.0`] || tiptapDoc(paragraph('Content under consultation.'));
+      standardSeed.sections['1.0'] || tiptapDoc(paragraph('Content under consultation.'));
 
     try {
       await prisma.section.create({
         data: {
           versionId: publicConsultation.id,
           number: '1.0',
-          title: 'Introduction',
+          title: SECTION_TITLES['1.0'],
           slug: '1-0-introduction',
           content: introContent as object,
           sortOrder: 0,
