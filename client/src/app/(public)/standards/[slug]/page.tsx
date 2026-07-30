@@ -5,49 +5,15 @@ import { Link2 } from 'lucide-react';
 import StandardSidebar from '@/components/public/StandardSidebar';
 import TiptapRenderer from '@/components/public/TiptapRenderer';
 import type { Standard, Version, Section, VersionSummary } from '@/types';
-import { API_URL } from '@/lib/constants';
+import { getStandard, getVersions, getLatestVersion, getAllPublishedSlugs } from '@/lib/publicApi';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function getStandard(slug: string): Promise<Standard | null> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}`, {
-      next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function getVersions(slug: string): Promise<VersionSummary[]> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions`, {
-      next: { tags: [`standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function getLatestVersion(slug: string): Promise<Version | null> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions/latest`, {
-      next: { tags: [`standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data ?? null;
-  } catch {
-    return null;
-  }
+export async function generateStaticParams() {
+  const slugs = await getAllPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
