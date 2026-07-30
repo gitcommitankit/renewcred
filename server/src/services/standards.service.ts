@@ -110,6 +110,10 @@ export class StandardsService {
    * Update an existing standard (admin)
    */
   static async update(id: string, data: UpdateStandardInput) {
+    const existing = await prisma.standard.findUnique({ where: { id } });
+    if (!existing) {
+      throw ApiError.notFound('Standard not found');
+    }
     return prisma.standard.update({ where: { id }, data });
   }
 
@@ -117,6 +121,10 @@ export class StandardsService {
    * Delete a standard and all its versions/sections (admin)
    */
   static async delete(id: string) {
+    const existing = await prisma.standard.findUnique({ where: { id } });
+    if (!existing) {
+      throw ApiError.notFound('Standard not found');
+    }
     return prisma.standard.delete({ where: { id } });
   }
 }

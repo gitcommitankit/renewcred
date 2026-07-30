@@ -38,6 +38,24 @@ export const errorHandler = (
       });
       return;
     }
+
+    if (prismaError.code === 'P2014') {
+      res.status(400).json({
+        success: false,
+        statusCode: 400,
+        message: 'The change violates a required relation between records',
+      });
+      return;
+    }
+
+    if (prismaError.code === 'P2024') {
+      res.status(503).json({
+        success: false,
+        statusCode: 503,
+        message: 'Database connection pool timeout — please try again shortly',
+      });
+      return;
+    }
   }
 
   // Unexpected error
