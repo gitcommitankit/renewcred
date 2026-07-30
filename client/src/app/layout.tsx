@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import Providers from '@/components/Providers';
 import MaintenancePage from '@/components/MaintenancePage';
 
 export const metadata: Metadata = {
@@ -22,9 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>
-        <Providers>{isMaintenanceMode ? <MaintenancePage /> : children}</Providers>
-      </body>
+      <body>{isMaintenanceMode ? <MaintenancePage /> : children}</body>
     </html>
   );
 }
