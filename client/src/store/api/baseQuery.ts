@@ -4,17 +4,13 @@ import {
   type FetchArgs,
   type FetchBaseQueryError,
 } from '@reduxjs/toolkit/query/react';
-import { API_URL, AUTH_COOKIE_MAX_AGE } from '@/lib/constants';
+import { API_URL } from '@/lib/constants';
+import { clearCredentials } from '@/store/slices/authSlice';
 
 export const createBaseQuery = (path = '') => {
   const rawBaseQuery = fetchBaseQuery({
     baseUrl: `${API_URL}${path}`,
     credentials: 'include',
-    prepareHeaders: (headers) => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      return headers;
-    },
   });
 
   const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
@@ -42,6 +38,9 @@ export const createBaseQuery = (path = '') => {
           // The backend successfully refreshed and set new HttpOnly cookies.
           // Retry original query.
           result = await rawBaseQuery(args, api, extraOptions);
+        } else {
+          // Refresh failed — clear stale credentials so UI redirects to login.
+          api.dispatch(clearCredentials());
         }
       }
     }

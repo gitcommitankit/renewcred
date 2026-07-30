@@ -23,32 +23,19 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ---- Request Interceptor: attach access token ----
-api.interceptors.request.use(
-  (config) => {
-    // Access token is stored in memory via Redux; read from localStorage as fallback
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 // ---- Response Interceptor: handle 401 with token refresh ----
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: (value?: unknown) => void;
   reject: (error: unknown) => void;
 }> = [];
 
-const processQueue = (error: unknown, token: string | null) => {
+const processQueue = (error: unknown) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token!);
+      prom.resolve();
     }
   });
   failedQueue = [];
@@ -70,10 +57,7 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
+          .then(() => api(originalRequest))
           .catch((err) => Promise.reject(err));
       }
 
@@ -81,22 +65,13 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await api.post('/auth/refresh');
-        const newAccessToken = data.data.accessToken;
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('accessToken', newAccessToken);
-        }
-
-        processQueue(null, newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        await api.post('/auth/refresh');
+        processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        // Clear tokens and redirect to login
+        processQueue(refreshError);
+        // Redirect to login
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('admin');
           window.location.href = '/admin/login';
         }
         return Promise.reject(refreshError);
