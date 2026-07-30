@@ -75,7 +75,7 @@ export function Button({
   );
 }
 
-// ---- Spinner (also exported from this file for convenience) ----
+// --- Spinner (also exported from this file for convenience) ---
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';

@@ -6,11 +6,11 @@ import { Router } from 'express';
 
 const router: Router = Router();
 
-// ---- Public routes ----
+// --- Public routes ---
 router.get('/standards', StandardsController.getPublished);
 router.get('/standards/:slug', StandardsController.getBySlug);
 
-// ---- Admin routes ----
+// --- Admin routes ---
 router.get('/admin/standards', authenticate, StandardsController.getAll);
 router.get(
   '/admin/standards/:id',

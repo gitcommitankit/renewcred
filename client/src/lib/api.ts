@@ -23,7 +23,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// ---- Response Interceptor: handle 401 with token refresh ----
+// --- Response Interceptor: handle 401 with token refresh ---
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;

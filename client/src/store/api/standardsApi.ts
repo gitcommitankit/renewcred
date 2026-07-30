@@ -8,7 +8,7 @@ export const standardsApi = createApi({
   baseQuery: createBaseQuery(),
   tagTypes: ['Standard'],
   endpoints: (builder) => ({
-    // ---- Admin ----
+    // --- Admin ---
     getAllStandards: builder.query<ApiResponse<Standard[]>, void>({
       query: () => '/admin/standards',
       providesTags: [{ type: 'Standard', id: 'ADMIN_LIST' }],

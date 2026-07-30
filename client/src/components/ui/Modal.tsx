@@ -97,7 +97,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
   return createPortal(modal, document.body);
 }
 
-// ---- Confirm Dialog ----
+// --- Confirm Dialog ---
 
 interface ConfirmDialogProps {
   isOpen: boolean;

@@ -2,7 +2,7 @@
 // Shared TypeScript types for RenewCred CMS
 // ============================================================
 
-// ---- Auth ----
+// --- Auth ---
 
 export interface Admin {
   id: string;
@@ -25,7 +25,7 @@ export interface LoginResponse {
   };
 }
 
-// ---- Standards ----
+// --- Standards ---
 
 export interface Standard {
   id: string;
@@ -52,7 +52,7 @@ export interface CreateStandardInput {
 
 export type UpdateStandardInput = Partial<CreateStandardInput>;
 
-// ---- Versions ----
+// --- Versions ---
 
 export type VersionStatus = 'DRAFT' | 'PUBLIC_CONSULTATION' | 'CERTIFIED';
 
@@ -91,7 +91,7 @@ export interface CreateVersionInput {
 
 export type UpdateVersionInput = Partial<CreateVersionInput>;
 
-// ---- Sections ----
+// --- Sections ---
 
 export interface Section {
   id: string;
@@ -124,7 +124,7 @@ export interface ReorderSectionItem {
   parentId?: string | null;
 }
 
-// ---- Tiptap ----
+// --- Tiptap ---
 
 export interface TiptapDocument {
   type: 'doc';
@@ -144,7 +144,7 @@ export interface TiptapMark {
   attrs?: Record<string, unknown>;
 }
 
-// ---- API Response ----
+// --- API Response ---
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -158,6 +158,6 @@ export interface ApiError {
   message: string;
 }
 
-// ---- UI ----
+// --- UI ---
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

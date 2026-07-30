@@ -12,11 +12,11 @@ import { authenticate } from '../middleware/auth';
 
 const router: Router = Router();
 
-// ---- Public routes ----
+// --- Public routes ---
 router.get('/standards/:slug/versions/latest', VersionsController.getLatest);
 router.get('/standards/:slug/versions/:versionSlug', VersionsController.getBySlug);
 
-// ---- Admin routes ----
+// --- Admin routes ---
 router.get(
   '/admin/versions/:id',
   authenticate,
@@ -44,7 +44,7 @@ router.delete(
   VersionsController.delete
 );
 
-// ---- Admin Section routes ----
+// --- Admin Section routes ---
 router.post(
   '/admin/versions/:versionId/sections',
   authenticate,
