@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown, ChevronUp, ExternalLink, MessageSquare } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import type { Section, VersionSummary } from '@/types';
 
 interface Props {
@@ -12,20 +12,26 @@ interface Props {
   sections: Section[];
 }
 
-function VersionStatusLabel({ status }: { status: string }) {
-  const map: Record<string, { label: string; className: string }> = {
-    CERTIFIED: { label: 'Certified', className: 'bg-green-100 text-green-700' },
-    PUBLIC_CONSULTATION: { label: 'Public Consultation', className: 'bg-amber-100 text-amber-700' },
-    DRAFT: { label: 'Draft', className: 'bg-warm-gray-200 text-warm-gray-500' },
-  };
-  const cfg = map[status] ?? map['DRAFT'];
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.className}`}
-    >
-      {cfg.label}
-    </span>
-  );
+function formatDate(dateStr?: string | Date | null): string {
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function getVersionDateText(version: VersionSummary): string {
+  if (version.status === 'CERTIFIED' && version.certifiedAt) {
+    return formatDate(version.certifiedAt);
+  }
+  if (version.consultationStartDate && version.consultationEndDate) {
+    return `${formatDate(version.consultationStartDate)} - ${formatDate(version.consultationEndDate)}`;
+  }
+  if (version.createdAt) {
+    return formatDate(version.createdAt);
+  }
+  return '';
 }
 
 function hasDescendantMatch(section: Section, allSections: Section[], search: string): boolean {
@@ -99,7 +105,6 @@ export default function StandardSidebar({
   const [search, setSearch] = useState('');
   const [versionOpen, setVersionOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const [consultationPopover, setConsultationPopover] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close version dropdown on outside click
@@ -132,7 +137,7 @@ export default function StandardSidebar({
     return () => observers.forEach((o) => o.disconnect());
   }, [sections]);
 
-  const activeVersion = versions.find((v) => v.id === activeVersionId);
+  const activeVersion = versions.find((v) => v.id === activeVersionId) ?? versions[0];
   const rootSections = sections
     .filter((s) => !s.parentId)
     .sort((a, b) => a.sortOrder - b.sortOrder);
@@ -140,11 +145,12 @@ export default function StandardSidebar({
   const handleVersionSelect = useCallback(
     (version: VersionSummary) => {
       setVersionOpen(false);
-      setConsultationPopover(null);
       router.push(`/standards/${standardSlug}/${version.slug}`);
     },
     [router, standardSlug]
   );
+
+  const activeDateText = activeVersion ? getVersionDateText(activeVersion) : '';
 
   return (
     <aside className="flex flex-col gap-5">
@@ -166,100 +172,73 @@ export default function StandardSidebar({
       {/* Version dropdown */}
       {versions.length > 0 && (
         <div className="relative" ref={dropdownRef}>
+          <label className="block text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-1.5">
+            Version
+          </label>
           <button
             onClick={() => setVersionOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-3 py-2.5 border border-warm-gray-200 rounded-lg bg-white text-sm font-medium text-charcoal-900 hover:border-warm-gray-300 transition-colors"
+            className="w-full flex items-center justify-between px-3 py-2.5 border border-warm-gray-200 rounded-lg bg-white text-sm text-charcoal-900 hover:border-warm-gray-300 transition-colors shadow-sm"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="font-semibold truncate">
-                {activeVersion?.versionLabel ?? 'Select version'}
-              </span>
-              {activeVersion && <VersionStatusLabel status={activeVersion.status} />}
+            <div className="flex items-center gap-1.5 min-w-0 font-medium">
+              <span className="truncate">{activeVersion?.versionLabel ?? 'Select version'}</span>
+              {activeDateText && (
+                <span className="text-warm-gray-500 font-normal truncate">- {activeDateText}</span>
+              )}
             </div>
             {versionOpen ? (
-              <ChevronUp size={15} className="shrink-0 text-warm-gray-500" />
+              <ChevronUp size={16} className="shrink-0 text-warm-gray-500 ml-2" />
             ) : (
-              <ChevronDown size={15} className="shrink-0 text-warm-gray-500" />
+              <ChevronDown size={16} className="shrink-0 text-warm-gray-500 ml-2" />
             )}
           </button>
 
           {versionOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-warm-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
-              {versions.map((version) => (
-                <div key={version.id} className="relative">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-warm-gray-200 rounded-xl shadow-lg z-30 overflow-y-auto max-h-60 divide-y-warm-gray-200">
+              {versions.map((version) => {
+                const isSelected = version.id === activeVersionId;
+                const isCertified = version.status === 'CERTIFIED';
+                const isConsultation = version.status === 'PUBLIC_CONSULTATION';
+                const dateText = getVersionDateText(version);
+
+                return (
                   <button
-                    onClick={() => {
-                      if (version.status === 'PUBLIC_CONSULTATION') {
-                        setConsultationPopover(
-                          consultationPopover === version.id ? null : version.id
-                        );
-                      } else {
-                        handleVersionSelect(version);
-                      }
-                    }}
+                    key={version.id}
+                    onClick={() => handleVersionSelect(version)}
                     className={[
-                      'w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-warm-gray-100',
-                      version.id === activeVersionId ? 'bg-warm-gray-100 font-semibold' : '',
+                      'w-full flex items-center justify-between px-4 py-3 text-left transition-colors group',
+                      isSelected ? 'bg-warm-gray-100 font-semibold' : 'hover:bg-warm-gray-50',
                     ].join(' ')}
                   >
-                    <div className="flex flex-col items-start gap-1">
-                      <span className="font-medium text-charcoal-900">{version.versionLabel}</span>
-                      <VersionStatusLabel status={version.status} />
-                      {version.certifiedAt && (
-                        <span className="text-xs text-warm-gray-500">
-                          {new Date(version.certifiedAt).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                    <div className="flex flex-col gap-0.5 min-w-0 pr-2">
+                      <span className="font-semibold text-charcoal-900 text-sm">
+                        {version.versionLabel}
+                      </span>
+                      {isCertified && (
+                        <span className="text-xs text-warm-gray-600">
+                          certified {dateText ? `- ${dateText}` : ''}
                         </span>
                       )}
-                      {version.consultationStartDate && version.consultationEndDate && (
-                        <span className="text-xs text-warm-gray-500">
-                          {new Date(version.consultationStartDate).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                          {' – '}
-                          {new Date(version.consultationEndDate).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-
-                  {/* Consultation popover (Design 4) */}
-                  {consultationPopover === version.id && (
-                    <div className="border-t border-warm-gray-200 bg-warm-gray-100">
-                      <button
-                        onClick={() => handleVersionSelect(version)}
-                        className="w-full flex items-center gap-2 px-5 py-2.5 text-sm text-charcoal-700 hover:bg-warm-gray-200 transition-colors"
-                      >
-                        <ExternalLink size={14} /> View consultation
-                      </button>
-                      <button
-                        onClick={() => {
-                          setVersionOpen(false);
-                          setConsultationPopover(null);
-                        }}
-                        className="w-full flex items-start gap-2 px-5 py-2.5 text-sm text-charcoal-700 hover:bg-warm-gray-200 transition-colors"
-                      >
-                        <MessageSquare size={14} className="mt-0.5 shrink-0" />
-                        <span>
-                          View Feedback
-                          <span className="block text-xs text-warm-gray-500">
-                            Feedback summary &amp; actions
+                      {isConsultation && (
+                        <>
+                          <span className="text-xs font-medium text-amber-700">
+                            Public consultation
                           </span>
-                        </span>
-                      </button>
+                          {dateText && (
+                            <span className="text-xs text-warm-gray-500">{dateText}</span>
+                          )}
+                        </>
+                      )}
+                      {!isCertified && !isConsultation && dateText && (
+                        <span className="text-xs text-warm-gray-500">{dateText}</span>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+                    <ChevronRight
+                      size={16}
+                      className="text-warm-gray-400 group-hover:text-charcoal-700 shrink-0 transition-colors"
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -270,7 +249,7 @@ export default function StandardSidebar({
         <p className="text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-2 px-2">
           Table of Contents
         </p>
-        <nav className="flex flex-col gap-0.5">
+        <nav className="flex flex-col gap-0.5 max-h-[calc(100vh-16rem)] overflow-y-auto pr-1">
           {rootSections.length === 0 ? (
             <p className="text-xs text-warm-gray-500 px-2 py-2">No sections yet.</p>
           ) : (

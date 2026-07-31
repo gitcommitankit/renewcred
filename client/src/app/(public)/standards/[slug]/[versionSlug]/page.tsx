@@ -82,7 +82,7 @@ export default async function VersionPage({ params }: Props) {
       {/* 2-column layout */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8 lg:gap-12 relative items-start">
-          <div className="w-72 shrink-0 sticky top-24 max-h-nav-offset overflow-y-auto pb-8">
+          <div className="w-72 shrink-0 sticky top-24 pb-8">
             <h3 className="font-semibold text-charcoal-900 mb-4">Contents</h3>
             <StandardSidebar
               standardSlug={slug}

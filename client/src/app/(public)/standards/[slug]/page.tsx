@@ -68,7 +68,7 @@ export default async function StandardDetailPage({ params }: Props) {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8 lg:gap-12 relative items-start">
           {/* Left sidebar */}
-          <div className="w-full md:w-72 shrink-0 md:sticky md:top-24 max-h-40vh md:max-h-nav-offset overflow-y-auto pb-4 md:pb-8 border-b md:border-b-0 border-warm-gray-200">
+          <div className="w-full md:w-72 shrink-0 md:sticky md:top-24 pb-4 md:pb-8 border-b md:border-b-0 border-warm-gray-200">
             <h3 className="font-semibold text-charcoal-900 mb-4 hidden md:block">Contents</h3>
             <StandardSidebar
               standardSlug={slug}
