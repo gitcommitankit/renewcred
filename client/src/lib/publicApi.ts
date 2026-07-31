@@ -76,7 +76,10 @@ export async function getVersionBySlug(
 ): Promise<Version | null> {
   try {
     const res = await fetch(`${API_URL}/standards/${standardSlug}/versions/${versionSlug}`, {
-      next: { tags: [`standard-${standardSlug}`], revalidate: 3600 },
+      next: {
+        tags: [`standard-${standardSlug}`, `version-${standardSlug}-${versionSlug}`],
+        revalidate: 3600,
+      },
     });
     if (!res.ok) return null;
     return (await res.json()).data ?? null;

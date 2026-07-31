@@ -1,15 +1,22 @@
 /**
  * Calls the Next.js on-demand revalidation endpoint to immediately bust
- * the ISR cache for the given public paths.
+ * the ISR cache for the given public paths and/or fetch cache tags.
  *
- * Temporarily unsecured to facilitate cross-domain revalidation.
- * This is fire-and-forget: errors are swallowed so that a cache-busting
- * failure never blocks the mutation's success toast or redirect.
+ * - `paths`  bust the rendered HTML of a page (e.g. '/standards')
+ * - `tags`   bust the fetch-level data cache for tagged requests in publicApi.ts
+ *
+ * Both should always be passed together so the page HTML and its underlying
+ * data are invalidated in the same request.
+ *
+ * Errors are swallowed so that a cache-busting failure never blocks the
+ * mutation's success toast or redirect. The ISR safety net (revalidate: 3600)
+ * covers any missed invalidations.
  *
  * @param paths Absolute Next.js paths to revalidate, e.g. ['/standards', '/standards/ev']
+ * @param tags  Fetch cache tags to revalidate, e.g. ['standards-list', 'standard-ev']
  */
-export async function revalidatePublicPaths(paths: string[]): Promise<void> {
-  if (!paths || paths.length === 0) return;
+export async function revalidatePublicPaths(paths: string[], tags: string[] = []): Promise<void> {
+  if ((!paths || paths.length === 0) && tags.length === 0) return;
 
   try {
     const headers: Record<string, string> = {
@@ -27,7 +34,7 @@ export async function revalidatePublicPaths(paths: string[]): Promise<void> {
       method: 'POST',
       headers,
       credentials: 'include',
-      body: JSON.stringify({ paths }),
+      body: JSON.stringify({ paths, tags }),
     });
 
     if (!res.ok) {

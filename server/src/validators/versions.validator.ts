@@ -1,5 +1,16 @@
 import { z } from 'zod';
 
+const dateSchema = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((val) => {
+    if (!val || typeof val !== 'string' || val.trim() === '') return null;
+    const date = new Date(val);
+    if (Number.isNaN(date.getTime())) return val;
+    return date.toISOString();
+  })
+  .pipe(z.string().datetime().nullable().optional());
+
 export const createVersionSchema = z.object({
   versionLabel: z.string().min(1, 'Version label is required').max(50),
   slug: z
@@ -8,9 +19,9 @@ export const createVersionSchema = z.object({
     .max(100)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens'),
   status: z.enum(['DRAFT', 'PUBLIC_CONSULTATION', 'CERTIFIED']).default('DRAFT'),
-  certifiedAt: z.string().datetime().optional().nullable(),
-  consultationStartDate: z.string().datetime().optional().nullable(),
-  consultationEndDate: z.string().datetime().optional().nullable(),
+  certifiedAt: dateSchema,
+  consultationStartDate: dateSchema,
+  consultationEndDate: dateSchema,
   isLatest: z.boolean().default(false),
 });
 

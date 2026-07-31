@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Button } from '@/components/ui/Button';
 import { BackButton } from '@/components/ui/BackButton';
+import { toIsoOrNull } from '@/lib/utils';
 
 const STATUS_OPTIONS: { value: VersionStatus; label: string }[] = [
   { value: 'DRAFT', label: 'Draft' },
@@ -59,9 +60,15 @@ export default function NewVersionPage() {
       return;
     }
     try {
+      const payload: CreateVersionInput = {
+        ...form,
+        certifiedAt: toIsoOrNull(form.certifiedAt),
+        consultationStartDate: toIsoOrNull(form.consultationStartDate),
+        consultationEndDate: toIsoOrNull(form.consultationEndDate),
+      };
       const result = await createVersion({
         standardId: params.id,
-        data: form,
+        data: payload,
         standardSlug: standardData?.data?.slug ?? '',
       }).unwrap();
       toast.success('Version created!');

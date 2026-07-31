@@ -100,10 +100,47 @@ export class StandardsService {
   }
 
   /**
+   * Re-indexes standards list sequentially (0, 1, 2, 3...) in parallel
+   */
+  private static async reindex(
+    tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+    list: Array<{ id: string; sortOrder: number }>
+  ) {
+    const updates = list.flatMap((item, index) => {
+      if (item.sortOrder !== index) {
+        return [tx.standard.update({ where: { id: item.id }, data: { sortOrder: index } })];
+      }
+      return [];
+    });
+
+    if (updates.length > 0) {
+      await Promise.all(updates);
+    }
+  }
+
+  /**
    * Create a new standard (admin)
    */
   static async create(data: CreateStandardInput) {
-    return prisma.standard.create({ data });
+    const existingSlug = await prisma.standard.findUnique({ where: { slug: data.slug } });
+    if (existingSlug) {
+      throw ApiError.conflict('A standard with this slug already exists');
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const created = await tx.standard.create({ data });
+
+      const list = await tx.standard.findMany({
+        where: { id: { not: created.id } },
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      const targetIndex = Math.min(Math.max(0, data.sortOrder ?? list.length), list.length);
+      list.splice(targetIndex, 0, created);
+
+      await StandardsService.reindex(tx, list);
+      return { ...created, sortOrder: targetIndex };
+    });
   }
 
   /**
@@ -114,7 +151,32 @@ export class StandardsService {
     if (!existing) {
       throw ApiError.notFound('Standard not found');
     }
-    return prisma.standard.update({ where: { id }, data });
+
+    if (data.slug && data.slug !== existing.slug) {
+      const duplicateSlug = await prisma.standard.findUnique({ where: { slug: data.slug } });
+      if (duplicateSlug) {
+        throw ApiError.conflict('A standard with this slug already exists');
+      }
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.standard.update({ where: { id }, data });
+
+      if (data.sortOrder !== undefined) {
+        const list = await tx.standard.findMany({
+          where: { id: { not: id } },
+          orderBy: { sortOrder: 'asc' },
+        });
+
+        const targetIndex = Math.min(Math.max(0, data.sortOrder), list.length);
+        list.splice(targetIndex, 0, updated);
+
+        await StandardsService.reindex(tx, list);
+        return { ...updated, sortOrder: targetIndex };
+      }
+
+      return updated;
+    });
   }
 
   /**
@@ -125,6 +187,16 @@ export class StandardsService {
     if (!existing) {
       throw ApiError.notFound('Standard not found');
     }
-    return prisma.standard.delete({ where: { id } });
+
+    return prisma.$transaction(async (tx) => {
+      const deleted = await tx.standard.delete({ where: { id } });
+
+      const remaining = await tx.standard.findMany({
+        orderBy: { sortOrder: 'asc' },
+      });
+
+      await StandardsService.reindex(tx, remaining);
+      return deleted;
+    });
   }
 }

@@ -95,6 +95,20 @@ export class VersionsService {
    * Create a new version (admin)
    */
   static async create(standardId: string, data: CreateVersionInput) {
+    const existing = await prisma.version.findFirst({
+      where: {
+        standardId,
+        OR: [{ versionLabel: data.versionLabel }, { slug: data.slug }],
+      },
+    });
+
+    if (existing) {
+      if (existing.versionLabel === data.versionLabel) {
+        throw ApiError.conflict('A version with this label already exists for this standard');
+      }
+      throw ApiError.conflict('A version with this slug already exists for this standard');
+    }
+
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // If this version is marked as latest, unmark only the previous latest
       if (data.isLatest) {
@@ -126,6 +140,25 @@ export class VersionsService {
 
     if (!version) {
       throw ApiError.notFound('Version not found');
+    }
+
+    if (data.slug || data.versionLabel) {
+      const duplicate = await prisma.version.findFirst({
+        where: {
+          standardId: version.standardId,
+          id: { not: id },
+          OR: [
+            ...(data.versionLabel ? [{ versionLabel: data.versionLabel }] : []),
+            ...(data.slug ? [{ slug: data.slug }] : []),
+          ],
+        },
+      });
+      if (duplicate) {
+        if (data.versionLabel && duplicate.versionLabel === data.versionLabel) {
+          throw ApiError.conflict('A version with this label already exists for this standard');
+        }
+        throw ApiError.conflict('A version with this slug already exists for this standard');
+      }
     }
 
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {

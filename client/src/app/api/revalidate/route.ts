@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     for (const tag of tags ?? []) {
       if (typeof tag === 'string' && tag.length > 0) {
-        revalidateTag(tag, 'default');
+        revalidateTag(tag, 'max');
       }
     }
 

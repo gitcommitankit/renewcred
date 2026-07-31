@@ -29,8 +29,7 @@ export const standardsApi = createApi({
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          // New standard on the list page
-          await revalidatePublicPaths(['/standards']);
+          await revalidatePublicPaths(['/standards'], ['standards-list']);
         } catch {
           /* mutation failed — nothing to revalidate */
         }
@@ -50,13 +49,23 @@ export const standardsApi = createApi({
         { type: 'Standard', id },
         { type: 'Standard', id: 'ADMIN_LIST' },
       ],
-      async onQueryStarted(_arg, { queryFulfilled }) {
+      async onQueryStarted({ id: _id, data: inputData }, { queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
-          const slug = data?.data?.slug;
+          const newSlug = data?.data?.slug;
+          const oldSlug = inputData.slug;
           const paths = ['/standards'];
-          if (slug) paths.push(`/standards/${slug}`);
-          await revalidatePublicPaths(paths);
+          const tags: string[] = ['standards-list'];
+          if (newSlug) {
+            paths.push(`/standards/${newSlug}`);
+            tags.push(`standard-${newSlug}`);
+          }
+          // If slug changed, also bust the old slug's path
+          if (oldSlug && oldSlug !== newSlug) {
+            paths.push(`/standards/${oldSlug}`);
+            tags.push(`standard-${oldSlug}`);
+          }
+          await revalidatePublicPaths(paths, tags);
         } catch {
           /* mutation failed — nothing to revalidate */
         }
@@ -72,7 +81,10 @@ export const standardsApi = createApi({
       async onQueryStarted({ slug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
-          await revalidatePublicPaths(['/standards', `/standards/${slug}`]);
+          await revalidatePublicPaths(
+            ['/standards', `/standards/${slug}`],
+            ['standards-list', `standard-${slug}`]
+          );
         } catch {
           /* mutation failed — nothing to revalidate */
         }

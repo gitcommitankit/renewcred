@@ -1,5 +1,6 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { createBaseQuery } from './baseQuery';
+import { standardsApi } from './standardsApi';
 import type {
   ApiResponse,
   Version,
@@ -16,24 +17,43 @@ import { revalidatePublicPaths } from '@/lib/revalidate';
 async function revalidateVersionPaths({
   standardSlug,
   versionSlug,
+  oldVersionSlug,
   includeList = false,
 }: {
   standardSlug: string;
   versionSlug?: string;
+  /** Previous slug — only set when a slug rename happened */
+  oldVersionSlug?: string;
   includeList?: boolean;
 }) {
-  const paths = includeList ? ['/standards'] : [];
+  const paths: string[] = [];
+  const tags: string[] = [`standard-${standardSlug}`];
+
+  if (includeList) {
+    paths.push('/standards');
+    tags.push('standards-list');
+  }
+
   paths.push(`/standards/${standardSlug}`);
+
   if (versionSlug) {
     paths.push(`/standards/${standardSlug}/${versionSlug}`);
+    tags.push(`version-${standardSlug}-${versionSlug}`);
   }
-  await revalidatePublicPaths(paths);
+
+  // If slug changed, bust the old path too so stale HTML is evicted
+  if (oldVersionSlug && oldVersionSlug !== versionSlug) {
+    paths.push(`/standards/${standardSlug}/${oldVersionSlug}`);
+    tags.push(`version-${standardSlug}-${oldVersionSlug}`);
+  }
+
+  await revalidatePublicPaths(paths, tags);
 }
 
 export const versionsApi = createApi({
   reducerPath: 'versionsApi',
   baseQuery: createBaseQuery(),
-  tagTypes: ['Version', 'Section'],
+  tagTypes: ['Version', 'Section', 'Standard'],
   endpoints: (builder) => ({
     // --- Public ---
     getVersionsByStandardSlug: builder.query<ApiResponse<VersionSummary[]>, string>({
@@ -55,14 +75,23 @@ export const versionsApi = createApi({
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: (_result, _error, { standardSlug }) => [
+      invalidatesTags: (_result, _error, { standardId, standardSlug }) => [
         { type: 'Version', id: `LIST-${standardSlug}` },
+        { type: 'Standard', id: standardId },
       ],
-      async onQueryStarted({ standardSlug }, { queryFulfilled }) {
+      async onQueryStarted({ standardId, standardSlug }, { dispatch, queryFulfilled }) {
         try {
           const { data: res } = await queryFulfilled;
+          dispatch(
+            standardsApi.util.invalidateTags([
+              { type: 'Standard', id: 'ADMIN_LIST' },
+              { type: 'Standard', id: standardId },
+            ])
+          );
           const versionSlug = res?.data?.slug;
-          await revalidateVersionPaths({ standardSlug, versionSlug, includeList: true });
+          // Creating a version doesn't add/remove a standard from /standards —
+          // only the standard's own page and version list are affected.
+          await revalidateVersionPaths({ standardSlug, versionSlug });
         } catch {
           /* mutation failed — nothing to revalidate */
         }
@@ -71,29 +100,43 @@ export const versionsApi = createApi({
 
     updateVersion: builder.mutation<
       ApiResponse<Version>,
-      { id: string; data: UpdateVersionInput; standardSlug: string }
+      {
+        id: string;
+        data: UpdateVersionInput;
+        standardSlug: string;
+        standardId?: string;
+        /** Slug before the edit — pass this to bust the old ISR path when a slug changes */
+        oldVersionSlug?: string;
+      }
     >({
       query: ({ id, data }) => ({
         url: `/admin/versions/${id}`,
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id, standardSlug }) => [
+      invalidatesTags: (_result, _error, { id, standardSlug, standardId }) => [
         { type: 'Version', id },
         { type: 'Version', id: `LIST-${standardSlug}` },
+        ...(standardId ? [{ type: 'Standard' as const, id: standardId }] : []),
       ],
-      async onQueryStarted({ standardSlug, data: inputData }, { queryFulfilled }) {
+      async onQueryStarted(
+        { standardId, standardSlug, oldVersionSlug },
+        { dispatch, queryFulfilled }
+      ) {
         try {
           const { data: res } = await queryFulfilled;
-          const versionSlug = res?.data?.slug;
-          const paths = ['/standards', `/standards/${standardSlug}`];
-          if (versionSlug) {
-            paths.push(`/standards/${standardSlug}/${versionSlug}`);
-          }
-          if (inputData.slug && inputData.slug !== versionSlug) {
-            paths.push(`/standards/${standardSlug}/${inputData.slug}`);
-          }
-          await revalidatePublicPaths(paths);
+          dispatch(
+            standardsApi.util.invalidateTags([
+              { type: 'Standard', id: 'ADMIN_LIST' },
+              ...(standardId ? [{ type: 'Standard' as const, id: standardId }] : []),
+            ])
+          );
+          const newVersionSlug = res?.data?.slug;
+          await revalidateVersionPaths({
+            standardSlug,
+            versionSlug: newVersionSlug,
+            oldVersionSlug,
+          });
         } catch {
           /* mutation failed — nothing to revalidate */
         }
@@ -102,18 +145,28 @@ export const versionsApi = createApi({
 
     deleteVersion: builder.mutation<
       ApiResponse<null>,
-      { id: string; standardSlug: string; versionSlug: string }
+      { id: string; standardSlug: string; versionSlug: string; standardId?: string }
     >({
       query: ({ id }) => ({
         url: `/admin/versions/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _error, { standardSlug }) => [
+      invalidatesTags: (_result, _error, { standardSlug, standardId }) => [
         { type: 'Version', id: `LIST-${standardSlug}` },
+        ...(standardId ? [{ type: 'Standard' as const, id: standardId }] : []),
       ],
-      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
+      async onQueryStarted(
+        { standardId, standardSlug, versionSlug },
+        { dispatch, queryFulfilled }
+      ) {
         try {
           await queryFulfilled;
+          dispatch(
+            standardsApi.util.invalidateTags([
+              { type: 'Standard', id: 'ADMIN_LIST' },
+              ...(standardId ? [{ type: 'Standard' as const, id: standardId }] : []),
+            ])
+          );
           await revalidateVersionPaths({ standardSlug, versionSlug, includeList: true });
         } catch {
           /* mutation failed — nothing to revalidate */
@@ -158,10 +211,10 @@ export const versionsApi = createApi({
         method: 'PUT',
         body: data,
       }),
-      // Only update the individual section cache — do NOT invalidate the full
-      // version or the section list. Editing content does not change the sidebar
-      // tree structure, and we must not trigger a full refetch on every auto-save.
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Section', id }],
+      invalidatesTags: (_result, _error, { id, versionId }) => [
+        { type: 'Section', id },
+        { type: 'Version', id: versionId },
+      ],
       async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
         try {
           await queryFulfilled;
