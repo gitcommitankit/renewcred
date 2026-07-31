@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui/Table';
 
 export default function VersionsListPage() {
   const params = useParams<{ id: string }>();
