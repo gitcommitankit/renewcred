@@ -1057,7 +1057,7 @@ async function main() {
  * Next.js container may still be starting up when the seed finishes.
  */
 async function revalidateNextjs(): Promise<void> {
-  const baseUrl = 'https://renewcred-server.vercel.app';
+  const baseUrl = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:3000';
 
   const url = `${baseUrl}/api/revalidate`;
   const tags = ['standards-list'];
