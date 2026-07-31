@@ -13,6 +13,7 @@ import { authenticate } from '../middleware/auth';
 const router: Router = Router();
 
 // --- Public routes ---
+router.get('/standards/:slug/versions', VersionsController.getVersions);
 router.get('/standards/:slug/versions/latest', VersionsController.getLatest);
 router.get('/standards/:slug/versions/:versionSlug', VersionsController.getBySlug);
 

@@ -13,6 +13,30 @@ export class VersionsService {
   // Versions
 
   /**
+   * Get all published/public version summaries for a standard (public)
+   */
+  static async getVersions(standardSlug: string) {
+    return prisma.version.findMany({
+      where: {
+        status: { not: 'DRAFT' },
+        standard: { slug: standardSlug, isPublished: true },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        versionLabel: true,
+        slug: true,
+        status: true,
+        certifiedAt: true,
+        consultationStartDate: true,
+        consultationEndDate: true,
+        isLatest: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  /**
    * Get a specific version with all sections (public)
    */
   static async getBySlug(standardSlug: string, versionSlug: string) {

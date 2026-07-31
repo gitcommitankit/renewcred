@@ -5,6 +5,15 @@ import type { Request, Response, NextFunction } from 'express';
 export class VersionsController {
   // --- Public endpoints (no auth required) ---
 
+  static async getVersions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const versions = await VersionsService.getVersions(req.params.slug as string);
+      res.json(ApiResponse.success(versions));
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getBySlug(req: Request, res: Response, next: NextFunction) {
     try {
       const version = await VersionsService.getBySlug(
