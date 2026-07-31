@@ -3,9 +3,9 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
-// ---------------------------------------------------------------------------
+// ---  ---
 // Tiptap JSON content helpers
-// ---------------------------------------------------------------------------
+// ---  ---
 
 function tiptapDoc(...content: unknown[]) {
   return { type: 'doc', content };
@@ -47,10 +47,10 @@ function orderedList(...items: string[]) {
   };
 }
 
-// ---------------------------------------------------------------------------
+// ---  ---
 // Section titles shared by every standard (numbering/structure is identical
 // across standards; only the substantive content differs)
-// ---------------------------------------------------------------------------
+// ---  ---
 
 const SECTION_TITLES: Record<string, string> = {
   '1.0': 'Introduction',
@@ -66,11 +66,11 @@ const SECTION_TITLES: Record<string, string> = {
   '3.2': 'Verification and Validation',
 };
 
-// ---------------------------------------------------------------------------
+// ---  ---
 // Per-standard content
 // Each entry provides: a short marketing description (for the Standard
 // record) and full Tiptap content for every section number.
-// ---------------------------------------------------------------------------
+// ---  ---
 
 type StandardSeed = {
   title: string;
@@ -624,11 +624,11 @@ const standards: StandardSeed[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
+// ---  ---
 // Section layout: number -> { slug, sortOrder, parentNumber }
 // This mirrors the original document tree (1.0, 2.0, 2.1 [+ 2.1.1, 2.1.2],
 // 2.2, 3.0, 3.1 [+ 3.1.1, 3.1.2], 3.2).
-// ---------------------------------------------------------------------------
+// ---  ---
 
 const SECTION_LAYOUT: {
   number: string;
@@ -674,9 +674,9 @@ const SECTION_LAYOUT: {
   { number: '3.2', slug: '3-2-verification-and-validation', sortOrder: 10, parentNumber: null },
 ];
 
-// ---------------------------------------------------------------------------
+// ---  ---
 // Seed function
-// ---------------------------------------------------------------------------
+// ---  ---
 
 async function main() {
   console.log('🌱 Starting seed...');
@@ -687,7 +687,7 @@ async function main() {
   await prisma.standard.deleteMany();
   await prisma.admin.deleteMany();
 
-  // ---- Create admin user ----
+  // --- Create admin user ---
   const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'Admin@123', 12);
 
   const admin = await prisma.admin.create({
@@ -700,7 +700,7 @@ async function main() {
 
   console.log(`✅ Admin created: ${admin.email}`);
 
-  // ---- Create standards ----
+  // --- Create standards ---
   for (const standardSeed of standards) {
     const standard = await prisma.standard.create({
       data: {
@@ -714,7 +714,7 @@ async function main() {
     });
     console.log(`✅ Standard created: ${standard.title}`);
 
-    // ---- Create versions ----
+    // --- Create versions ---
     // Version 1: Public consultation (Draft/Consultation)
     const publicConsultation = await prisma.version.create({
       data: {
@@ -742,7 +742,7 @@ async function main() {
 
     console.log(`  📋 Versions created for ${standard.title}`);
 
-    // ---- Create sections for the certified version ----
+    // --- Create sections for the certified version ---
     const createdSections: Record<string, string> = {};
 
     // Top-level sections first (parentNumber === null), then children, so
@@ -824,7 +824,7 @@ async function main() {
   console.log(`   Email: ${process.env.SEED_ADMIN_EMAIL || 'admin@renewcred.com'}`);
   console.log(`   Password: ${process.env.SEED_ADMIN_PASSWORD || 'Admin@123'}`);
 
-  // ---- Bust Next.js ISR cache so seeded data appears immediately ----
+  // --- Bust Next.js ISR cache so seeded data appears immediately ---
   await revalidateNextjs();
 }
 

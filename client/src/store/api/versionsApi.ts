@@ -35,7 +35,7 @@ export const versionsApi = createApi({
   baseQuery: createBaseQuery(),
   tagTypes: ['Version', 'Section'],
   endpoints: (builder) => ({
-    // ---- Public ----
+    // --- Public ---
     getVersionsByStandardSlug: builder.query<ApiResponse<VersionSummary[]>, string>({
       query: (slug) => `/standards/${slug}/versions`,
       providesTags: (_result, _error, slug) => [{ type: 'Version', id: `LIST-${slug}` }],
@@ -121,7 +121,7 @@ export const versionsApi = createApi({
       },
     }),
 
-    // ---- Admin Sections ----
+    // --- Admin Sections ---
     createSection: builder.mutation<
       ApiResponse<Section>,
       { versionId: string; data: CreateSectionInput; standardSlug: string; versionSlug: string }

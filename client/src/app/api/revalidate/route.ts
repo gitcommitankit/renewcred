@@ -1,15 +1,6 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
-/*
-import jwt from 'jsonwebtoken';
-
-interface JwtPayload {
-  adminId?: string;
-  email?: string;
-}
-*/
-
 /**
  * POST /api/revalidate
  *
@@ -21,39 +12,6 @@ interface JwtPayload {
  */
 export async function POST(req: NextRequest) {
   try {
-    /*
-    // TEMPORARILY DISABLED AUTHENTICATION FOR REVALIDATION
-    // Reason: Admin client and Next.js website run on different domains, making cookie-based transfer hard.
-    let token = req.cookies.get('accessToken')?.value;
-    if (!token) {
-      const authHeader = req.headers.get('authorization');
-      if (authHeader?.startsWith('Bearer ')) {
-        token = authHeader.substring(7);
-      }
-    }
-
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized: No token provided' }, { status: 401 });
-    }
-
-    const secret = process.env.JWT_ACCESS_SECRET;
-    if (!secret) {
-      console.error('❌ JWT_ACCESS_SECRET environment variable is missing on client');
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
-    }
-
-    let decoded: JwtPayload;
-    try {
-      decoded = jwt.verify(token, secret) as JwtPayload;
-    } catch {
-      return NextResponse.json({ error: 'Unauthorized: Invalid or expired token' }, { status: 401 });
-    }
-
-    if (!decoded?.adminId) {
-      return NextResponse.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
-    }
-    */
-
     // Revalidate paths and/or tags
     const body = await req.json();
     const { paths, tags } = body as { paths?: string[]; tags?: string[] };

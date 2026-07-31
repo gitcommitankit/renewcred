@@ -34,7 +34,7 @@ export function Badge({ variant = 'default', children, className = '' }: BadgePr
   );
 }
 
-// ---- Version status badge helper ----
+// --- Version status badge helper ---
 const statusMap: Record<VersionStatus, { label: string; variant: BadgeVariant }> = {
   DRAFT: { label: 'Draft', variant: 'outline' },
   PUBLIC_CONSULTATION: { label: 'Public Consultation', variant: 'warning' },

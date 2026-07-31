@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database';
 import { ApiError } from '../utils/ApiError';
 import {
@@ -10,6 +11,30 @@ import {
 
 export class VersionsService {
   // Versions
+
+  /**
+   * Get all published/public version summaries for a standard (public)
+   */
+  static async getVersions(standardSlug: string) {
+    return prisma.version.findMany({
+      where: {
+        status: { not: 'DRAFT' },
+        standard: { slug: standardSlug, isPublished: true },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        versionLabel: true,
+        slug: true,
+        status: true,
+        certifiedAt: true,
+        consultationStartDate: true,
+        consultationEndDate: true,
+        isLatest: true,
+        createdAt: true,
+      },
+    });
+  }
 
   /**
    * Get a specific version with all sections (public)
@@ -70,11 +95,11 @@ export class VersionsService {
    * Create a new version (admin)
    */
   static async create(standardId: string, data: CreateVersionInput) {
-    return prisma.$transaction(async (tx: any) => {
-      // If this version is marked as latest, unmark all others
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // If this version is marked as latest, unmark only the previous latest
       if (data.isLatest) {
         await tx.version.updateMany({
-          where: { standardId },
+          where: { standardId, isLatest: true },
           data: { isLatest: false },
         });
       }
@@ -103,7 +128,7 @@ export class VersionsService {
       throw ApiError.notFound('Version not found');
     }
 
-    return prisma.$transaction(async (tx: any) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // If marking as latest, unmark others
       if (data.isLatest) {
         await tx.version.updateMany({
@@ -178,7 +203,7 @@ export class VersionsService {
     return prisma.section.create({
       data: {
         ...data,
-        content: data.content as any | undefined,
+        content: data.content as object,
         versionId,
       },
     });
@@ -192,7 +217,7 @@ export class VersionsService {
       where: { id },
       data: {
         ...data,
-        content: data.content as any | undefined,
+        content: data.content as object,
       },
     });
   }

@@ -1,53 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Link2 } from 'lucide-react';
 import StandardSidebar from '@/components/public/StandardSidebar';
-import TiptapRenderer from '@/components/public/TiptapRenderer';
-import type { Standard, Version, Section, VersionSummary } from '@/types';
-import { API_URL } from '@/lib/constants';
+import SectionBlock from '@/components/public/SectionBlock';
+import { getStandard, getVersions, getLatestVersion, getAllPublishedSlugs } from '@/lib/publicApi';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function getStandard(slug: string): Promise<Standard | null> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}`, {
-      next: { tags: ['standards-list', `standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function getVersions(slug: string): Promise<VersionSummary[]> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions`, {
-      next: { tags: [`standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function getLatestVersion(slug: string): Promise<Version | null> {
-  try {
-    const res = await fetch(`${API_URL}/standards/${slug}/versions/latest`, {
-      next: { tags: [`standard-${slug}`], revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data ?? null;
-  } catch {
-    return null;
-  }
+export async function generateStaticParams() {
+  const slugs = await getAllPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -104,7 +68,7 @@ export default async function StandardDetailPage({ params }: Props) {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row gap-8 lg:gap-12 relative items-start">
           {/* Left sidebar */}
-          <div className="w-full md:w-72 shrink-0 md:sticky md:top-24 max-h-40vh md:max-h-nav-offset overflow-y-auto pb-4 md:pb-8 border-b md:border-b-0 border-warm-gray-200">
+          <div className="w-full md:w-72 shrink-0 md:sticky md:top-24 pb-4 md:pb-8 border-b md:border-b-0 border-warm-gray-200">
             <h3 className="font-semibold text-charcoal-900 mb-4 hidden md:block">Contents</h3>
             <StandardSidebar
               standardSlug={slug}
@@ -141,59 +105,5 @@ export default async function StandardDetailPage({ params }: Props) {
         </div>
       </div>
     </main>
-  );
-}
-
-/* ──────────────── Section block with anchor ──────────────── */
-function SectionBlock({
-  section,
-  allSections,
-  depth = 0,
-}: {
-  section: Section;
-  allSections: Section[];
-  depth?: number;
-}) {
-  const children = allSections
-    .filter((s) => s.parentId === section.id)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  const HeadingTag = depth === 0 ? 'h2' : depth === 1 ? 'h3' : 'h4';
-  const headingClass =
-    depth === 0
-      ? 'text-2xl font-bold text-charcoal-900'
-      : depth === 1
-        ? 'text-xl font-semibold text-charcoal-900'
-        : 'text-lg font-semibold text-charcoal-800';
-
-  return (
-    <div id={`section-${section.id}`} className="scroll-mt-24">
-      <div className="flex items-center gap-2 group mb-4">
-        <span className="text-sm font-mono text-warm-gray-400 shrink-0">{section.number}</span>
-        <HeadingTag className={headingClass}>{section.title}</HeadingTag>
-        <a
-          href={`#section-${section.id}`}
-          className="opacity-0 group-hover:opacity-100 text-warm-gray-400 hover:text-brand-red transition-all ml-1"
-          aria-label={`Link to ${section.title}`}
-        >
-          <Link2 size={16} />
-        </a>
-      </div>
-
-      {section.content && <TiptapRenderer content={section.content} />}
-
-      {children.length > 0 && (
-        <div className={`mt-6 ${depth > 0 ? 'pl-4 border-l border-warm-gray-200' : ''} space-y-8`}>
-          {children.map((child) => (
-            <SectionBlock
-              key={child.id}
-              section={child}
-              allSections={allSections}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
-    </div>
   );
 }

@@ -34,10 +34,17 @@ import {
 } from 'lucide-react';
 import { TiptapDocument } from '@/types';
 
+/**
+ * Props for the rich-text Tiptap editor component.
+ */
 interface TiptapEditorProps {
+  /** The current JSON state of the editor content. */
   content: TiptapDocument | null;
+  /** Callback fired whenever the editor content changes. */
   onChange: (content: TiptapDocument) => void;
+  /** Optional placeholder text shown when the editor is empty. */
   placeholder?: string;
+  /** Optional flag to disable editing (defaults to true). */
   editable?: boolean;
 }
 
@@ -73,7 +80,7 @@ function Divider() {
   return <div className="w-px h-5 bg-warm-gray-200 mx-1" />;
 }
 
-/* ── Link dialog (inline popover) ── */
+/* --- Link dialog (inline popover) --- */
 function LinkPopover({
   onConfirm,
   onClose,

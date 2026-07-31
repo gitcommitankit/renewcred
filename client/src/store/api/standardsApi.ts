@@ -8,7 +8,7 @@ export const standardsApi = createApi({
   baseQuery: createBaseQuery(),
   tagTypes: ['Standard'],
   endpoints: (builder) => ({
-    // ---- Admin ----
+    // --- Admin ---
     getAllStandards: builder.query<ApiResponse<Standard[]>, void>({
       query: () => '/admin/standards',
       providesTags: [{ type: 'Standard', id: 'ADMIN_LIST' }],
@@ -25,10 +25,7 @@ export const standardsApi = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: [
-        { type: 'Standard', id: 'LIST' },
-        { type: 'Standard', id: 'ADMIN_LIST' },
-      ],
+      invalidatesTags: [{ type: 'Standard', id: 'ADMIN_LIST' }],
       async onQueryStarted(arg, { queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -51,7 +48,6 @@ export const standardsApi = createApi({
       }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Standard', id },
-        { type: 'Standard', id: 'LIST' },
         { type: 'Standard', id: 'ADMIN_LIST' },
       ],
       async onQueryStarted(_arg, { queryFulfilled }) {
@@ -72,10 +68,7 @@ export const standardsApi = createApi({
         url: `/admin/standards/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: [
-        { type: 'Standard', id: 'LIST' },
-        { type: 'Standard', id: 'ADMIN_LIST' },
-      ],
+      invalidatesTags: [{ type: 'Standard', id: 'ADMIN_LIST' }],
       async onQueryStarted({ slug }, { queryFulfilled }) {
         try {
           await queryFulfilled;

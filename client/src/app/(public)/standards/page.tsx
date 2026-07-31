@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import type { Standard } from '@/types';
-import { API_URL } from '@/lib/constants';
+import { getPublishedStandards } from '@/lib/publicApi';
 
 export const metadata: Metadata = {
   title: 'Standards',
@@ -10,21 +10,8 @@ export const metadata: Metadata = {
     'Browse all published RenewCred climate standards — covering Electric Vehicles, Biochar, Methane, Renewable Energy, and more.',
 };
 
-async function getStandards(): Promise<Standard[]> {
-  try {
-    const res = await fetch(`${API_URL}/standards`, {
-      next: { tags: ['standards-list'], revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function StandardsPage() {
-  const standards = await getStandards();
+  const standards = await getPublishedStandards();
 
   return (
     <main>

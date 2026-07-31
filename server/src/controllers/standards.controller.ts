@@ -3,7 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse';
 import type { Request, Response, NextFunction } from 'express';
 
 export class StandardsController {
-  // ---- Public ----
+  // --- Public ---
 
   static async getPublished(_req: Request, res: Response, next: NextFunction) {
     try {
@@ -23,7 +23,7 @@ export class StandardsController {
     }
   }
 
-  // ---- Admin ----
+  // --- Admin ---
 
   static async getAll(_req: Request, res: Response, next: NextFunction) {
     try {

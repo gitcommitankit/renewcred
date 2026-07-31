@@ -2,7 +2,7 @@
  * Calls the Next.js on-demand revalidation endpoint to immediately bust
  * the ISR cache for the given public paths.
  *
- * Authenticates using the admin's JWT token (via Cookie or Bearer header).
+ * Temporarily unsecured to facilitate cross-domain revalidation.
  * This is fire-and-forget: errors are swallowed so that a cache-busting
  * failure never blocks the mutation's success toast or redirect.
  *
