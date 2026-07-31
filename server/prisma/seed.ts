@@ -47,6 +47,33 @@ function orderedList(...items: string[]) {
   };
 }
 
+// A lightweight "callout" paragraph used for status notices (draft,
+// consultation, superseded). Rendered as a plain paragraph with a bold
+// lead-in so it doesn't require any Tiptap extensions beyond what the
+// rest of the seed already uses.
+function notice(label: string, text: string) {
+  return {
+    type: 'paragraph',
+    content: [
+      { type: 'text', marks: [{ type: 'bold' }], text: `${label}: ` },
+      { type: 'text', text },
+    ],
+  };
+}
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+// Prepends a status notice to an existing Tiptap document without mutating
+// the shared, per-standard content object (each version needs its own copy).
+function withNotice(baseContent: { type: string; content: unknown[] }, noticeNode: object) {
+  return {
+    type: 'doc',
+    content: [noticeNode, ...baseContent.content],
+  };
+}
+
 // ---  ---
 // Section titles shared by every standard (numbering/structure is identical
 // across standards; only the substantive content differs)
@@ -99,6 +126,9 @@ const standards: StandardSeed[] = [
         ),
         paragraph(
           'Key considerations include the carbon intensity of the electricity grid, vehicle efficiency ratings, and the lifecycle emissions of battery production and disposal. The standard aims to provide a transparent and verifiable approach to quantifying the climate benefits of electric vehicle deployment.'
+        ),
+        paragraph(
+          'This methodology was developed in alignment with the ICVCM Core Carbon Principles and draws on the GHG Protocol Project Protocol and ISO 14064-2 for quantification and reporting conventions. It is maintained by the standard\u2019s Transport Sector Technical Working Group, which meets quarterly to review implementation feedback from accredited verification bodies.'
         ),
         bulletList(
           'Applies to battery electric vehicles (BEVs) and plug-in hybrid electric vehicles (PHEVs)',
@@ -234,6 +264,9 @@ const standards: StandardSeed[] = [
         paragraph(
           'The permanence of carbon sequestration through biochar is a key advantage, with studies indicating stability over centuries to millennia when applied to soils. This standard establishes monitoring, reporting, and verification (MRV) requirements to ensure the integrity of biochar carbon credits.'
         ),
+        paragraph(
+          'This methodology aligns with the IPCC guidance on biochar as a carbon dioxide removal (CDR) pathway and incorporates permanence and reversal-risk provisions consistent with the ICVCM Core Carbon Principles. It supersedes ad hoc project-level biochar quantification approaches previously used under general afforestation or soil carbon methodologies.'
+        ),
         bulletList(
           'Defines eligible feedstock sources and sustainability criteria',
           'Establishes pyrolysis process requirements and emission controls',
@@ -368,6 +401,9 @@ const standards: StandardSeed[] = [
         paragraph(
           'The standard covers methane emissions from landfills, wastewater treatment facilities, coal mines, and oil and gas operations. It provides detailed guidance on baseline emission calculations, monitoring requirements, and verification procedures.'
         ),
+        paragraph(
+          'Version 2.0.0 of this standard incorporates lessons learned from over 40 verified project audits since the methodology\u2019s initial certification, including tightened destruction-efficiency defaults and expanded guidance on reconciling ground-based metering with satellite methane observations.'
+        ),
         bulletList(
           'Landfill gas capture and utilization projects',
           'Agricultural methane reduction (enteric fermentation, manure management)',
@@ -501,6 +537,9 @@ const standards: StandardSeed[] = [
         ),
         paragraph(
           'The standard addresses additionality requirements, ensuring that credited projects represent genuine emission reductions beyond what would have occurred under business-as-usual scenarios. It includes provisions for grid-connected and off-grid renewable energy systems.'
+        ),
+        paragraph(
+          'This is a minor revision (v1.1.0) to the certified v1.0.0 methodology, clarifying the treatment of curtailed generation and updating the list of recognized national grid emission factor publications referenced in Section 2.1.2.'
         ),
         orderedList(
           'Solar photovoltaic and concentrated solar power',
@@ -675,6 +714,19 @@ const SECTION_LAYOUT: {
 ];
 
 // ---  ---
+// Realistic team roster
+// A single env-configured "owner" admin plus a small standing set of
+// working-group colleagues, mirroring how a real standards body would
+// have more than one seeded reviewer/editor account.
+// ---  ---
+
+const TEAM_ADMIN_SEEDS: { email: string; name: string }[] = [
+  { email: 'sarah.chen@renewcred.com', name: 'Sarah Chen' },
+  { email: 'marcus.oduya@renewcred.com', name: 'Marcus Oduya' },
+  { email: 'priya.raman@renewcred.com', name: 'Priya Raman' },
+];
+
+// ---  ---
 // Seed function
 // ---  ---
 
@@ -687,18 +739,35 @@ async function main() {
   await prisma.standard.deleteMany();
   await prisma.admin.deleteMany();
 
-  // --- Create admin user ---
-  const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'Admin@123', 12);
+  // --- Create admin users ---
+  // Primary/owner account, configurable via env vars (e.g. for CI or local dev).
+  const ownerPasswordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD || 'Admin@123', 12);
 
-  const admin = await prisma.admin.create({
+  const owner = await prisma.admin.create({
     data: {
       email: process.env.SEED_ADMIN_EMAIL || 'admin@renewcred.com',
-      passwordHash,
+      passwordHash: ownerPasswordHash,
       name: process.env.SEED_ADMIN_NAME || 'Admin User',
     },
   });
 
-  console.log(`✅ Admin created: ${admin.email}`);
+  console.log(`✅ Admin created: ${owner.email}`);
+
+  // A handful of additional, realistic working-group accounts so the admin
+  // panel doesn't look like a single-user demo. All share one seed-only
+  // password; this is intentionally not the same as the owner credential.
+  const teamPasswordHash = await bcrypt.hash(process.env.SEED_TEAM_PASSWORD || 'ChangeMe@2025', 12);
+
+  for (const teamMember of TEAM_ADMIN_SEEDS) {
+    const created = await prisma.admin.create({
+      data: {
+        email: teamMember.email,
+        passwordHash: teamPasswordHash,
+        name: teamMember.name,
+      },
+    });
+    console.log(`✅ Admin created: ${created.email}`);
+  }
 
   // --- Create standards ---
   for (const standardSeed of standards) {
@@ -714,115 +783,269 @@ async function main() {
     });
     console.log(`✅ Standard created: ${standard.title}`);
 
-    // --- Create versions ---
-    // Version 1: Public consultation (Draft/Consultation)
-    const publicConsultation = await prisma.version.create({
-      data: {
-        standardId: standard.id,
-        versionLabel: 'v0.9.0',
-        slug: 'v0-9-0',
-        status: VersionStatus.PUBLIC_CONSULTATION,
-        consultationStartDate: new Date('2025-05-12'),
-        consultationEndDate: new Date('2025-07-12'),
-        isLatest: false,
-      },
-    });
+    // Define rich version combinations per standard
+    const versionConfigs: Record<
+      string,
+      Array<{
+        versionLabel: string;
+        slug: string;
+        status: VersionStatus;
+        certifiedAt?: Date;
+        consultationStartDate?: Date;
+        consultationEndDate?: Date;
+        isLatest: boolean;
+      }>
+    > = {
+      ev: [
+        {
+          versionLabel: 'v0.8.0',
+          slug: 'v0-8-0-draft',
+          status: VersionStatus.DRAFT,
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v0.9.0',
+          slug: 'v0-9-0',
+          status: VersionStatus.PUBLIC_CONSULTATION,
+          consultationStartDate: new Date('2025-05-12'),
+          consultationEndDate: new Date('2025-07-12'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v1.0.0',
+          slug: 'v1-0-0-certified',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2025-07-12'),
+          isLatest: true,
+        },
+        {
+          versionLabel: 'v1.1.0',
+          slug: 'v1-1-0-draft',
+          status: VersionStatus.DRAFT,
+          isLatest: false,
+        },
+      ],
+      biochar: [
+        {
+          versionLabel: 'v0.9.0',
+          slug: 'v0-9-0',
+          status: VersionStatus.PUBLIC_CONSULTATION,
+          consultationStartDate: new Date('2025-01-01'),
+          consultationEndDate: new Date('2025-03-01'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v1.0.0',
+          slug: 'v1-0-0-certified',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2025-03-15'),
+          isLatest: true,
+        },
+        {
+          versionLabel: 'v1.2.0',
+          slug: 'v1-2-0-consultation',
+          status: VersionStatus.PUBLIC_CONSULTATION,
+          consultationStartDate: new Date('2025-08-01'),
+          consultationEndDate: new Date('2025-11-01'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v2.0.0',
+          slug: 'v2-0-0-draft',
+          status: VersionStatus.DRAFT,
+          isLatest: false,
+        },
+      ],
+      methane: [
+        {
+          versionLabel: 'v0.5.0',
+          slug: 'v0-5-0-draft',
+          status: VersionStatus.DRAFT,
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v1.0.0',
+          slug: 'v1-0-0',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2024-01-10'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v1.5.0',
+          slug: 'v1-5-0-consultation',
+          status: VersionStatus.PUBLIC_CONSULTATION,
+          consultationStartDate: new Date('2025-06-01'),
+          consultationEndDate: new Date('2025-09-01'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v2.0.0',
+          slug: 'v2-0-0-certified',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2025-07-15'),
+          isLatest: true,
+        },
+      ],
+      'renewable-energy': [
+        {
+          versionLabel: 'v1.0.0',
+          slug: 'v1-0-0',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2024-06-01'),
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v1.1.0',
+          slug: 'v1-1-0-certified',
+          status: VersionStatus.CERTIFIED,
+          certifiedAt: new Date('2025-05-20'),
+          isLatest: true,
+        },
+        {
+          versionLabel: 'v1.2.0',
+          slug: 'v1-2-0-draft',
+          status: VersionStatus.DRAFT,
+          isLatest: false,
+        },
+        {
+          versionLabel: 'v2.0.0',
+          slug: 'v2-0-0-consultation',
+          status: VersionStatus.PUBLIC_CONSULTATION,
+          consultationStartDate: new Date('2025-09-15'),
+          consultationEndDate: new Date('2025-12-15'),
+          isLatest: false,
+        },
+      ],
+    };
 
-    // Version 2: Certified (latest)
-    const certified = await prisma.version.create({
-      data: {
-        standardId: standard.id,
+    const configs = versionConfigs[standardSeed.slug] ?? [
+      {
         versionLabel: 'v1.0.0',
         slug: 'v1-0-0-certified',
         status: VersionStatus.CERTIFIED,
         certifiedAt: new Date('2025-07-12'),
         isLatest: true,
       },
-    });
+    ];
 
-    console.log(`  📋 Versions created for ${standard.title}`);
+    // Used to reference "this has been superseded by vX.Y.Z" on older
+    // certified versions of the same standard.
+    const latestConfig = configs.find((c) => c.isLatest);
 
-    // --- Create sections for the certified version ---
-    const createdSections: Record<string, string> = {};
-
-    // Top-level sections first (parentNumber === null), then children, so
-    // that parentId can be resolved correctly regardless of layout order.
-    const topLevel = SECTION_LAYOUT.filter((s) => s.parentNumber === null);
-    const children = SECTION_LAYOUT.filter((s) => s.parentNumber !== null);
-
-    for (const layout of topLevel) {
-      const content =
-        standardSeed.sections[layout.number] || tiptapDoc(paragraph('Content coming soon.'));
-
-      const section = await prisma.section.create({
+    for (const vConfig of configs) {
+      const createdVersion = await prisma.version.create({
         data: {
-          versionId: certified.id,
-          number: layout.number,
-          title: SECTION_TITLES[layout.number] ?? layout.number,
-          slug: layout.slug,
-          content: content as object,
-          sortOrder: layout.sortOrder,
-          parentId: null,
+          standardId: standard.id,
+          versionLabel: vConfig.versionLabel,
+          slug: vConfig.slug,
+          status: vConfig.status,
+          certifiedAt: vConfig.certifiedAt ?? null,
+          consultationStartDate: vConfig.consultationStartDate ?? null,
+          consultationEndDate: vConfig.consultationEndDate ?? null,
+          isLatest: vConfig.isLatest,
         },
       });
 
-      createdSections[layout.number] = section.id;
-    }
+      // --- Create sections for this version ---
+      const createdSections: Record<string, string> = {};
+      const topLevel = SECTION_LAYOUT.filter((s) => s.parentNumber === null);
+      const children = SECTION_LAYOUT.filter((s) => s.parentNumber !== null);
 
-    for (const layout of children) {
-      const content =
-        standardSeed.sections[layout.number] || tiptapDoc(paragraph('Content coming soon.'));
+      for (const layout of topLevel) {
+        let content =
+          standardSeed.sections[layout.number] ||
+          tiptapDoc(paragraph(`Content for ${vConfig.versionLabel} section ${layout.number}.`));
 
-      await prisma.section.create({
-        data: {
-          versionId: certified.id,
-          number: layout.number,
-          title: SECTION_TITLES[layout.number] ?? layout.number,
-          slug: layout.slug,
-          content: content as object,
-          sortOrder: layout.sortOrder,
-          parentId: createdSections[layout.parentNumber as string] || null,
-        },
-      });
-    }
+        // Give the Introduction section a lifecycle-appropriate notice so
+        // drafts, consultation versions, and superseded versions actually
+        // read differently from the current certified text, instead of
+        // every version showing identical, finished-sounding content.
+        if (layout.number === '1.0') {
+          if (vConfig.status === VersionStatus.DRAFT) {
+            content = withNotice(
+              content as { type: string; content: unknown[] },
+              notice(
+                'Working draft',
+                'This text is an internal working draft prepared for review by the technical working group and has not been released for public consultation. Section numbering, thresholds, and defaults are subject to change without notice.'
+              )
+            );
+          } else if (
+            vConfig.status === VersionStatus.PUBLIC_CONSULTATION &&
+            vConfig.consultationStartDate &&
+            vConfig.consultationEndDate
+          ) {
+            content = withNotice(
+              content as { type: string; content: unknown[] },
+              notice(
+                'Open for public consultation',
+                `This version is open for public comment from ${formatDate(
+                  vConfig.consultationStartDate
+                )} to ${formatDate(
+                  vConfig.consultationEndDate
+                )}. Stakeholder submissions received during this window will be reviewed by the technical working group ahead of finalization.`
+              )
+            );
+          } else if (
+            vConfig.status === VersionStatus.CERTIFIED &&
+            !vConfig.isLatest &&
+            latestConfig
+          ) {
+            content = withNotice(
+              content as { type: string; content: unknown[] },
+              notice(
+                'Superseded',
+                `This version has been superseded by ${latestConfig.versionLabel} and is retained for historical reference only. New projects must apply the current certified version.`
+              )
+            );
+          }
+        }
 
-    // Also create the introduction section for the public consultation version
-    const introContent =
-      standardSeed.sections['1.0'] || tiptapDoc(paragraph('Content under consultation.'));
+        const section = await prisma.section.create({
+          data: {
+            versionId: createdVersion.id,
+            number: layout.number,
+            title: SECTION_TITLES[layout.number] ?? layout.number,
+            slug: layout.slug,
+            content: content as object,
+            sortOrder: layout.sortOrder,
+            parentId: null,
+          },
+        });
 
-    try {
-      await prisma.section.create({
-        data: {
-          versionId: publicConsultation.id,
-          number: '1.0',
-          title: SECTION_TITLES['1.0'],
-          slug: '1-0-introduction',
-          content: introContent as object,
-          sortOrder: 0,
-        },
-      });
-    } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        (error as { code: string }).code === 'P2002'
-      ) {
-        console.log(`Skipping existing record`);
-      } else {
-        throw error;
+        createdSections[layout.number] = section.id;
+      }
+
+      for (const layout of children) {
+        const content =
+          standardSeed.sections[layout.number] ||
+          tiptapDoc(paragraph(`Sub-section content for ${vConfig.versionLabel}.`));
+
+        await prisma.section.create({
+          data: {
+            versionId: createdVersion.id,
+            number: layout.number,
+            title: SECTION_TITLES[layout.number] ?? layout.number,
+            slug: layout.slug,
+            content: content as object,
+            sortOrder: layout.sortOrder,
+            parentId: createdSections[layout.parentNumber as string] || null,
+          },
+        });
       }
     }
 
-    console.log(`  📄 Sections created for ${standard.title}`);
+    console.log(`  📄 Multiple versions & sections created for ${standard.title}`);
   }
 
   console.log('');
   console.log('🎉 Seed completed successfully!');
   console.log('');
-  console.log('📧 Admin login credentials:');
-  console.log(`   Email: ${process.env.SEED_ADMIN_EMAIL || 'admin@renewcred.com'}`);
-  console.log(`   Password: ${process.env.SEED_ADMIN_PASSWORD || 'Admin@123'}`);
+  console.log('📧 Admin login credentials (seed data only — rotate before any shared deploy):');
+  console.log(
+    `   Owner:  ${process.env.SEED_ADMIN_EMAIL || 'admin@renewcred.com'} / ${process.env.SEED_ADMIN_PASSWORD || 'Admin@123'}`
+  );
+  console.log(`   Team:   ${TEAM_ADMIN_SEEDS.map((a) => a.email).join(', ')}`);
+  console.log(`           (shared password: ${process.env.SEED_TEAM_PASSWORD || 'ChangeMe@2025'})`);
 
   // --- Bust Next.js ISR cache so seeded data appears immediately ---
   await revalidateNextjs();
@@ -834,7 +1057,7 @@ async function main() {
  * Next.js container may still be starting up when the seed finishes.
  */
 async function revalidateNextjs(): Promise<void> {
-  const baseUrl = process.env.CLIENT_URL || process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const baseUrl = 'https://renewcred-server.vercel.app';
 
   const url = `${baseUrl}/api/revalidate`;
   const tags = ['standards-list'];

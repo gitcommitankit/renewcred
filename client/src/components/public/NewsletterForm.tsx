@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState('');
@@ -16,22 +18,20 @@ export default function NewsletterForm() {
           setEmail('');
         }
       }}
-      className="flex gap-2 mt-3"
+      className="flex gap-2 mt-3 items-center"
     >
-      <input
+      <Input
         type="email"
         placeholder="Your email address"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
-        className="flex-1 min-w-0 px-3 py-2 text-sm bg-charcoal-800 border border-charcoal-700 placeholder-warm-gray-400 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-red"
+        wrapperClassName="flex-1 min-w-0"
+        className="bg-charcoal-800 border-charcoal-700 text-white focus:ring-brand-red"
       />
-      <button
-        type="submit"
-        className="px-4 py-2 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors shrink-0"
-      >
+      <Button type="submit" variant="primary" size="md" className="shrink-0">
         Subscribe
-      </button>
+      </Button>
     </form>
   );
 }

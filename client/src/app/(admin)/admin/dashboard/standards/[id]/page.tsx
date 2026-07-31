@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Input, Textarea } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Switch } from '@/components/ui/Switch';
 import { Button, Spinner } from '@/components/ui/Button';
+import { BackButton } from '@/components/ui/BackButton';
 import { useGetStandardByIdQuery, useUpdateStandardMutation } from '@/store/api/standardsApi';
 import { UpdateStandardInput } from '@/types';
 
@@ -54,12 +56,7 @@ export default function EditStandardPage() {
   return (
     <>
       <div className="flex items-center gap-3 mb-6">
-        <Link
-          href="/admin/dashboard/standards"
-          className="inline-flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 transition-colors"
-        >
-          <ArrowLeft size={15} /> Back
-        </Link>
+        <BackButton fallbackHref="/admin/dashboard/standards" />
         <span className="text-warm-gray-300">·</span>
         <Link
           href={`/admin/dashboard/standards/${params.id}/versions`}
@@ -106,26 +103,16 @@ export default function EditStandardPage() {
               onChange={(e) => set('sortOrder', Number(e.target.value))}
             />
             <div className="flex flex-col gap-1.5 justify-end">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.isPublished ?? false}
-                    onChange={(e) => set('isPublished', e.target.checked)}
-                    className="sr-only peer"
-                    aria-label="Published"
-                  />
-                  <div
-                    className={`w-10 h-5 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-brand-red ${form.isPublished ? 'bg-brand-red' : 'bg-warm-gray-300'}`}
-                  ></div>
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isPublished ? 'translate-x-5' : ''}`}
-                  />
-                </div>
-                <span className="text-sm font-medium text-charcoal-900 group-hover:text-black">
+              <div className="flex items-center gap-2.5">
+                <Switch
+                  id="isPublished"
+                  checked={form.isPublished ?? false}
+                  onCheckedChange={(checked) => set('isPublished', checked)}
+                />
+                <Label htmlFor="isPublished" className="cursor-pointer">
                   Published
-                </span>
-              </label>
+                </Label>
+              </div>
               <p className="text-xs text-warm-gray-500">Visible on public website</p>
             </div>
           </div>

@@ -4,6 +4,16 @@ import Link from 'next/link';
 import { BookOpen, FileText, CheckCircle, Clock, Plus, ArrowRight } from 'lucide-react';
 import { useGetAllStandardsQuery } from '@/store/api/standardsApi';
 import type { Standard } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 function StatCard({
   label,
@@ -89,12 +99,9 @@ export default function DashboardPage() {
           Quick Actions
         </h3>
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/admin/dashboard/standards/new"
-            className="flex items-center gap-2 px-4 py-2 bg-brand-red text-white! text-sm font-medium rounded-lg hover:bg-brand-red-dark transition-colors"
-          >
-            <Plus size={15} /> New Standard
-          </Link>
+          <Button asChild variant="primary" className="text-white!" leftIcon={<Plus size={15} />}>
+            <Link href="/admin/dashboard/standards/new">New Standards</Link>
+          </Button>
         </div>
       </div>
 
@@ -118,51 +125,42 @@ export default function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-warm-gray-200">
-                {['Title', 'Versions', 'Status', ''].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead className="hidden sm:table-cell">Versions</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {standards.map((s: Standard) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-warm-gray-100 hover:bg-warm-gray-100 transition-colors"
-                >
-                  <td className="px-5 py-3 font-medium text-charcoal-900">
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium text-charcoal-900">
                     {s.icon && <span className="mr-2">{s.icon}</span>}
                     {s.title}
-                  </td>
-                  <td className="px-5 py-3 text-charcoal-600 hidden sm:table-cell">
+                  </TableCell>
+                  <TableCell className="text-charcoal-600 hidden sm:table-cell">
                     {s._count?.versions ?? 0}
-                  </td>
-                  <td className="px-5 py-3">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
-                    >
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={s.isPublished ? 'success' : 'warning'}>
                       {s.isPublished ? 'Published' : 'Draft'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
                     <Link
                       href={`/admin/dashboard/standards/${s.id}`}
                       className="text-xs text-brand-red font-medium hover:underline"
                     >
                       Edit
                     </Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
     </>
