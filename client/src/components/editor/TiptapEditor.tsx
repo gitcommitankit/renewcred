@@ -146,7 +146,26 @@ export default function TiptapEditor({
       TableRow,
       TableHeader,
       TableCell,
-      Mathematics,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node: any, pos: number) => {
+            const currentLatex = node.attrs?.latex ?? '';
+            const newLatex = prompt('Edit Math Equation (LaTeX):', currentLatex);
+            if (newLatex !== null) {
+              editor?.chain().focus().setNodeSelection(pos).updateInlineMath({ latex: newLatex }).run();
+            }
+          },
+        },
+        blockOptions: {
+          onClick: (node: any, pos: number) => {
+            const currentLatex = node.attrs?.latex ?? '';
+            const newLatex = prompt('Edit Block Math Equation (LaTeX):', currentLatex);
+            if (newLatex !== null) {
+              editor?.chain().focus().setNodeSelection(pos).updateBlockMath({ latex: newLatex }).run();
+            }
+          },
+        },
+      }),
     ],
     content: content || undefined,
     editable,
