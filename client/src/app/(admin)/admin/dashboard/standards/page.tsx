@@ -9,7 +9,16 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { Standard } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
 import { ConfirmDialog } from '@/components/ui/Modal';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 export default function StandardsListPage() {
   const { data, isLoading } = useGetAllStandardsQuery();
@@ -72,46 +81,33 @@ export default function StandardsListPage() {
             )}
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-warm-gray-200 bg-warm-gray-100">
-                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">
-                  Title / Slug
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">
-                  Versions
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider">
-                  Order
-                </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold text-warm-gray-500 uppercase tracking-wider"></th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title / Slug</TableHead>
+                <TableHead>Versions</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Order</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {standards.map((s: Standard) => (
-                <tr
-                  key={s.id}
-                  className="border-b border-warm-gray-100 hover:bg-warm-gray-100 transition-colors"
-                >
-                  <td className="px-5 py-3.5">
+                <TableRow key={s.id}>
+                  <TableCell>
                     <p className="font-medium text-charcoal-900 flex items-center gap-2">
                       {s.icon && <span>{s.icon}</span>} {s.title}
                     </p>
                     <p className="text-xs text-warm-gray-500 mt-0.5">/{s.slug}</p>
-                  </td>
-                  <td className="px-5 py-3.5 text-charcoal-600">{s._count?.versions ?? 0}</td>
-                  <td className="px-5 py-3.5">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${s.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}
-                    >
+                  </TableCell>
+                  <TableCell className="text-charcoal-600">{s._count?.versions ?? 0}</TableCell>
+                  <TableCell>
+                    <Badge variant={s.isPublished ? 'success' : 'warning'}>
                       {s.isPublished ? 'Published' : 'Draft'}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-warm-gray-500">{s.sortOrder}</td>
-                  <td className="px-5 py-3.5">
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-warm-gray-500">{s.sortOrder}</TableCell>
+                  <TableCell>
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/dashboard/standards/${s.id}/versions`}
@@ -126,19 +122,22 @@ export default function StandardsListPage() {
                       >
                         <Edit size={14} />
                       </Link>
-                      <button
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setDeleteTarget(s)}
-                        className="p-1.5 text-warm-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-warm-gray-500 hover:text-red-600 hover:bg-red-50 h-auto"
                         title="Delete"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </div>
 

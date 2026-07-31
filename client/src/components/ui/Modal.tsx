@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect, useCallback, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { type ReactNode } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from './Button';
 
 interface ModalProps {
@@ -12,6 +17,7 @@ interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
 }
 
 const sizeStyles: Record<string, string> = {
@@ -21,80 +27,28 @@ const sizeStyles: Record<string, string> = {
   xl: 'max-w-2xl',
 };
 
-export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
-  const handleEsc = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, handleEsc]);
-
-  if (!isOpen) return null;
-
-  const modal = (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? 'modal-title' : undefined}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Panel */}
-      <div
-        className={[
-          'relative z-10 w-full mx-4 bg-white rounded-xl shadow-xl',
-          'flex flex-col max-h-[90vh]',
-          sizeStyles[size],
-        ].join(' ')}
-      >
-        {/* Header */}
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  size = 'md',
+  className,
+}: ModalProps) {
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={`${sizeStyles[size]} ${className ?? ''}`}>
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-warm-gray-200 shrink-0">
-            <h2 id="modal-title" className="text-base font-semibold text-charcoal-900">
-              {title}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-warm-gray-500 hover:text-charcoal-900 hover:bg-warm-gray-100 transition-colors"
-              aria-label="Close modal"
-            >
-              <X size={16} />
-            </button>
-          </div>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
         )}
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-warm-gray-200 shrink-0">
-            {footer}
-          </div>
-        )}
-      </div>
-    </div>
+        <div className="py-2 text-sm text-charcoal-600">{children}</div>
+        {footer && <DialogFooter>{footer}</DialogFooter>}
+      </DialogContent>
+    </Dialog>
   );
-
-  if (typeof document === 'undefined') return null;
-  return createPortal(modal, document.body);
 }
 
 // --- Confirm Dialog ---

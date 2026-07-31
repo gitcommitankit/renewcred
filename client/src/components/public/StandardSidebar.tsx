@@ -1,9 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight } from 'lucide-react';
 import type { Section, VersionSummary } from '@/types';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Props {
   standardSlug: string;
@@ -71,7 +79,7 @@ function TocItem({
       <button
         onClick={scrollTo}
         className={[
-          'w-full text-left flex items-baseline gap-2 py-1.5 rounded-md text-sm transition-colors',
+          'w-full text-left flex items-baseline gap-2 py-1.5 rounded-md text-sm transition-colors cursor-pointer',
           activeId === section.id
             ? 'text-brand-red font-semibold bg-brand-red/5'
             : 'text-charcoal-600 hover:text-charcoal-900 hover:bg-warm-gray-100',
@@ -103,20 +111,7 @@ export default function StandardSidebar({
 }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState('');
-  const [versionOpen, setVersionOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close version dropdown on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setVersionOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
 
   // Scroll-spy with IntersectionObserver
   useEffect(() => {
@@ -144,7 +139,6 @@ export default function StandardSidebar({
 
   const handleVersionSelect = useCallback(
     (version: VersionSummary) => {
-      setVersionOpen(false);
       router.push(`/standards/${standardSlug}/${version.slug}`);
     },
     [router, standardSlug]
@@ -155,45 +149,41 @@ export default function StandardSidebar({
   return (
     <aside className="flex flex-col gap-5">
       {/* Search */}
-      <div className="relative">
-        <Search
-          size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-gray-400 pointer-events-none"
-        />
-        <input
-          type="text"
-          placeholder="Search sections…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-warm-gray-200 rounded-lg bg-warm-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-red transition-colors"
-        />
-      </div>
+      <Input
+        type="text"
+        placeholder="Search sections…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        leftIcon={<Search size={14} />}
+        className="bg-warm-gray-100"
+      />
 
       {/* Version dropdown */}
       {versions.length > 0 && (
-        <div className="relative" ref={dropdownRef}>
-          <label className="block text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-1.5">
+        <div>
+          <Label className="text-xs font-semibold text-warm-gray-400 uppercase tracking-wider mb-1.5">
             Version
-          </label>
-          <button
-            onClick={() => setVersionOpen((v) => !v)}
-            className="w-full flex items-center justify-between px-3 py-2.5 border border-warm-gray-200 rounded-lg bg-white text-sm text-charcoal-900 hover:border-warm-gray-300 transition-colors shadow-sm"
-          >
-            <div className="flex items-center gap-1.5 min-w-0 font-medium">
-              <span className="truncate">{activeVersion?.versionLabel ?? 'Select version'}</span>
-              {activeDateText && (
-                <span className="text-warm-gray-500 font-normal truncate">- {activeDateText}</span>
-              )}
-            </div>
-            {versionOpen ? (
-              <ChevronUp size={16} className="shrink-0 text-warm-gray-500 ml-2" />
-            ) : (
-              <ChevronDown size={16} className="shrink-0 text-warm-gray-500 ml-2" />
-            )}
-          </button>
-
-          {versionOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-warm-gray-200 rounded-xl shadow-lg z-30 overflow-y-auto max-h-60 divide-y-warm-gray-200">
+          </Label>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center justify-between px-3 py-2.5 border border-warm-gray-200 rounded-lg bg-white text-sm text-charcoal-900 hover:border-warm-gray-300 transition-colors shadow-xs cursor-pointer outline-none focus:ring-0">
+                <div className="flex items-center gap-1.5 min-w-0 font-medium">
+                  <span className="truncate">
+                    {activeVersion?.versionLabel ?? 'Select version'}
+                  </span>
+                  {activeDateText && (
+                    <span className="text-warm-gray-500 font-normal truncate">
+                      - {activeDateText}
+                    </span>
+                  )}
+                </div>
+                <ChevronDown size={16} className="shrink-0 text-warm-gray-500 ml-2" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-72 max-h-60 overflow-y-auto divide-y divide-warm-gray-100"
+            >
               {versions.map((version) => {
                 const isSelected = version.id === activeVersionId;
                 const isCertified = version.status === 'CERTIFIED';
@@ -201,12 +191,12 @@ export default function StandardSidebar({
                 const dateText = getVersionDateText(version);
 
                 return (
-                  <button
+                  <DropdownMenuItem
                     key={version.id}
                     onClick={() => handleVersionSelect(version)}
                     className={[
-                      'w-full flex items-center justify-between px-4 py-3 text-left transition-colors group',
-                      isSelected ? 'bg-warm-gray-100 font-semibold' : 'hover:bg-warm-gray-50',
+                      'w-full flex items-center justify-between px-4 py-3 text-left transition-colors group cursor-pointer rounded-none outline-none hover:bg-warm-gray-100 focus:bg-warm-gray-100',
+                      isSelected ? 'bg-warm-gray-100 font-semibold' : '',
                     ].join(' ')}
                   >
                     <div className="flex flex-col gap-0.5 min-w-0 pr-2">
@@ -236,11 +226,11 @@ export default function StandardSidebar({
                       size={16}
                       className="text-warm-gray-400 group-hover:text-charcoal-700 shrink-0 transition-colors"
                     />
-                  </button>
+                  </DropdownMenuItem>
                 );
               })}
-            </div>
-          )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       )}
 

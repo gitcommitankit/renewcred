@@ -29,6 +29,7 @@ import TiptapEditor from '@/components/editor/TiptapEditor';
 import { Input } from '@/components/ui/Input';
 import { VersionBadge } from '@/components/ui/Badge';
 import { Button, Spinner } from '@/components/ui/Button';
+import { BackButton } from '@/components/ui/BackButton';
 import { Section, TiptapDocument, TiptapNode } from '@/types';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
@@ -100,8 +101,9 @@ function SortableTreeItem({
 
         {/* Expand toggle */}
         <button
+          type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="shrink-0 w-4 h-4 flex items-center justify-center"
+          className="shrink-0 w-4 h-4 flex items-center justify-center text-warm-gray-400 hover:text-charcoal-700 transition-colors"
         >
           {children.length > 0 ? (
             expanded ? (
@@ -122,11 +124,12 @@ function SortableTreeItem({
 
         {/* Delete */}
         <button
+          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDelete(section);
           }}
-          className="opacity-0 group-hover:opacity-100 p-0.5 text-warm-gray-500 hover:text-red-500 transition-all"
+          className="opacity-0 group-hover:opacity-100 p-0.5 text-warm-gray-400 hover:text-red-500 transition-colors"
         >
           <Trash2 size={12} />
         </button>
@@ -404,12 +407,7 @@ export default function VersionEditorPage() {
     <div className="flex flex-col -m-6 h-dashboard md:h-dashboard">
       <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-warm-gray-200 shrink-0">
         <div className="flex items-center gap-3">
-          <Link
-            href={`/admin/dashboard/standards/${params.id}/versions`}
-            className="flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 transition-colors"
-          >
-            <ArrowLeft size={15} /> Back
-          </Link>
+          <BackButton fallbackHref={`/admin/dashboard/standards/${params.id}/versions`} />
           <span className="text-warm-gray-300">·</span>
           <span className="text-sm font-semibold text-charcoal-900">
             {version?.standard?.title}
@@ -442,6 +440,7 @@ export default function VersionEditorPage() {
               Sections
             </span>
             <button
+              type="button"
               onClick={() => setShowNewSection((v) => !v)}
               className="p-1 text-warm-gray-500 hover:text-brand-red transition-colors rounded"
               title="Add section"

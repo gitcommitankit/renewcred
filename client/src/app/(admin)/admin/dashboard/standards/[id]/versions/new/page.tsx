@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGetStandardByIdQuery } from '@/store/api/standardsApi';
 import { useCreateVersionMutation } from '@/store/api/versionsApi';
 import { CreateVersionInput, VersionStatus } from '@/types';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Switch } from '@/components/ui/Switch';
 import { Button } from '@/components/ui/Button';
+import { BackButton } from '@/components/ui/BackButton';
 
 const STATUS_OPTIONS: { value: VersionStatus; label: string }[] = [
   { value: 'DRAFT', label: 'Draft' },
@@ -73,12 +75,9 @@ export default function NewVersionPage() {
 
   return (
     <>
-      <Link
-        href={`/admin/dashboard/standards/${params.id}/versions`}
-        className="inline-flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 mb-6 transition-colors"
-      >
-        <ArrowLeft size={15} /> {standardData?.data?.title} — Versions
-      </Link>
+      <div className="mb-6">
+        <BackButton fallbackHref={`/admin/dashboard/standards/${params.id}/versions`} />
+      </div>
 
       <div className="bg-white rounded-xl border border-warm-gray-200 p-6">
         <h2 className="text-lg font-bold text-charcoal-900 mb-6">Create Version</h2>
@@ -108,22 +107,18 @@ export default function NewVersionPage() {
 
           {/* Status */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-charcoal-900">Status</label>
+            <Label>Status</Label>
             <div className="flex gap-2 flex-wrap">
               {STATUS_OPTIONS.map((opt) => (
-                <button
+                <Button
                   key={opt.value}
                   type="button"
+                  size="sm"
+                  variant={form.status === opt.value ? 'primary' : 'outline'}
                   onClick={() => set('status', opt.value)}
-                  className={[
-                    'px-4 py-2 rounded-lg text-sm font-medium border transition-colors',
-                    form.status === opt.value
-                      ? 'bg-brand-red text-white border-brand-red'
-                      : 'bg-white text-[#555] border-warm-gray-300 hover:border-charcoal-900',
-                  ].join(' ')}
                 >
                   {opt.label}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -161,22 +156,21 @@ export default function NewVersionPage() {
           )}
 
           {/* isLatest toggle */}
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <div
-              onClick={() => set('isLatest', !form.isLatest)}
-              className={`relative w-10 h-5 rounded-full transition-colors ${form.isLatest ? 'bg-brand-red' : 'bg-warm-gray-300'}`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isLatest ? 'translate-x-5' : ''}`}
-              />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <Switch
+              id="isLatest"
+              checked={form.isLatest}
+              onCheckedChange={(checked) => set('isLatest', checked)}
+            />
             <div>
-              <span className="text-sm font-medium text-charcoal-900">Mark as Latest</span>
+              <Label htmlFor="isLatest" className="cursor-pointer">
+                Mark as Latest
+              </Label>
               <p className="text-xs text-warm-gray-500">
                 This version shown by default on public site
               </p>
             </div>
-          </label>
+          </div>
 
           <div className="flex gap-3 pt-2">
             <Button type="submit" isLoading={isLoading}>

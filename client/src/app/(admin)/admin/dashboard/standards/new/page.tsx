@@ -7,6 +7,8 @@ import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Switch } from '@/components/ui/Switch';
 import { useCreateStandardMutation } from '@/store/api/standardsApi';
 import { CreateStandardInput } from '@/types';
 
@@ -68,14 +70,27 @@ export default function NewStandardPage() {
     }
   };
 
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      router.back();
+    } else {
+      router.push('/admin/dashboard/standards');
+    }
+  };
+
   return (
     <>
-      <Link
-        href="/admin/dashboard/standards"
-        className="inline-flex items-center gap-1.5 text-sm text-warm-gray-500 hover:text-charcoal-900 mb-6 transition-colors"
-      >
-        <ArrowLeft size={15} /> Back to Standards
-      </Link>
+      <div className="mb-6">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          leftIcon={<ArrowLeft size={15} />}
+        >
+          Back
+        </Button>
+      </div>
       <div className="bg-white rounded-xl border border-warm-gray-200 p-6">
         <h2 className="text-lg font-bold text-charcoal-900 mb-6">Create Standard</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -125,26 +140,16 @@ export default function NewStandardPage() {
               hint="Lower = appears first"
             />
             <div className="flex flex-col gap-1.5 justify-end">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none group">
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={form.isPublished}
-                    onChange={(e) => set('isPublished', e.target.checked)}
-                    className="sr-only peer"
-                    aria-label="Published"
-                  />
-                  <div
-                    className={`w-10 h-5 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-brand-red ${form.isPublished ? 'bg-brand-red' : 'bg-warm-gray-300'}`}
-                  ></div>
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isPublished ? 'translate-x-5' : ''}`}
-                  />
-                </div>
-                <span className="text-sm font-medium text-charcoal-900 group-hover:text-black">
+              <div className="flex items-center gap-2.5">
+                <Switch
+                  id="isPublished"
+                  checked={form.isPublished}
+                  onCheckedChange={(checked) => set('isPublished', checked)}
+                />
+                <Label htmlFor="isPublished" className="cursor-pointer">
                   Published
-                </span>
-              </label>
+                </Label>
+              </div>
               <p className="text-xs text-warm-gray-500">Visible on public website</p>
             </div>
           </div>

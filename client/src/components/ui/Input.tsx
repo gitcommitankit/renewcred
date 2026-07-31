@@ -1,6 +1,8 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
+import { Label } from './Label';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   hint?: string;
@@ -17,26 +19,22 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       hint,
       leftIcon,
       rightIcon,
-      wrapperClassName = '',
-      className = '',
+      wrapperClassName,
+      className,
       id,
+      required,
       ...props
     },
     ref
   ) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
-      <div className={['flex flex-col gap-1.5', wrapperClassName].join(' ')}>
+      <div className={cn('flex flex-col gap-1.5', wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-charcoal-900">
+          <Label htmlFor={inputId} required={required}>
             {label}
-            {props.required && (
-              <span className="ml-1 text-brand-red" aria-label="required">
-                *
-              </span>
-            )}
-          </label>
+          </Label>
         )}
 
         <div className="relative flex items-center">
@@ -49,20 +47,19 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={[
-              'w-full rounded-lg border bg-white text-sm text-charcoal-900 placeholder:text-warm-gray-500',
+            required={required}
+            className={cn(
+              'w-full rounded-lg border bg-white text-sm text-charcoal-900',
               'transition-colors duration-150',
-              'focus:outline-none focus:ring-2 focus:ring-brand-red focus:ring-offset-0 focus:border-brand-red',
+              'focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-brand-red',
               error
-                ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
+                ? 'border-red-400 focus:ring-red-400'
                 : 'border-warm-gray-300 hover:border-warm-gray-400',
               leftIcon ? 'pl-9' : 'pl-3',
               rightIcon ? 'pr-9' : 'pr-3',
               'py-2',
-              className,
-            ]
-              .filter(Boolean)
-              .join(' ')}
+              className
+            )}
             {...props}
           />
 
@@ -88,7 +85,7 @@ Input.displayName = 'Input';
 
 // --- Textarea ---
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   hint?: string;
@@ -96,36 +93,30 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, error, hint, wrapperClassName = '', className = '', id, ...props }, ref) => {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+  ({ label, error, hint, wrapperClassName, className, id, required, ...props }, ref) => {
+    const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
-      <div className={['flex flex-col gap-1.5', wrapperClassName].join(' ')}>
+      <div className={cn('flex flex-col gap-1.5', wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-charcoal-900">
+          <Label htmlFor={inputId} required={required}>
             {label}
-            {props.required && (
-              <span className="ml-1 text-brand-red" aria-label="required">
-                *
-              </span>
-            )}
-          </label>
+          </Label>
         )}
 
         <textarea
           ref={ref}
           id={inputId}
-          className={[
-            'w-full rounded-lg border bg-white px-3 py-2 text-sm text-charcoal-900 placeholder:text-warm-gray-500',
+          required={required}
+          className={cn(
+            'w-full rounded-lg border bg-white px-3 py-2 text-sm text-charcoal-900',
             'transition-colors duration-150 resize-y min-h-24',
             'focus:outline-none focus:ring-2 focus:ring-brand-red focus:border-brand-red',
             error
               ? 'border-red-400 focus:ring-red-400'
               : 'border-warm-gray-300 hover:border-warm-gray-400',
-            className,
-          ]
-            .filter(Boolean)
-            .join(' ')}
+            className
+          )}
           {...props}
         />
 

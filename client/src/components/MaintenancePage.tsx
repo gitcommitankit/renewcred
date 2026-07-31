@@ -1,7 +1,9 @@
 'use client';
 
 import { RefreshCw } from 'lucide-react';
+import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
+import { Button } from '@/components/ui/Button';
 
 export default function MaintenancePage() {
   return (
@@ -19,25 +21,28 @@ export default function MaintenancePage() {
         </h1>
 
         {/* Refresh button */}
-        <button
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
           onClick={() => window.location.reload()}
-          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-charcoal-900 text-white font-medium text-sm hover:bg-charcoal-800 active:scale-[0.99] transition-all shadow-md hover:shadow-lg"
+          leftIcon={<RefreshCw className="w-4 h-4" />}
+          className="w-full"
         >
-          <RefreshCw className="w-4 h-4" />
           Check Status (Refresh Page)
-        </button>
+        </Button>
 
         {/* GitHub fallback message */}
         <p className="text-xs text-charcoal-600 leading-relaxed">
           In the meantime, you can check out the{' '}
-          <a
+          <Link
             href="https://github.com/gitcommitankit/renewcred"
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand-red! font-medium hover:underline!"
           >
             source code on GitHub
-          </a>{' '}
+          </Link>{' '}
           and set up the app manually.
         </p>
 

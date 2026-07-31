@@ -9,6 +9,8 @@
     "dev:server": "dotenv -e .env -- pnpm --filter server dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "clean": "rm -rf client/.next server/dist",
+    "clean:build": "pnpm clean && pnpm build",
     "build": "pnpm format && dotenv -e .env -- pnpm --filter server build && dotenv -e .env -- pnpm --filter client build",
     "build:client": "dotenv -e .env -- pnpm --filter client build",
     "build:server": "dotenv -e .env -- pnpm --filter server build",

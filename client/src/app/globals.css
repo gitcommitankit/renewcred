@@ -7,6 +7,10 @@
    ============================================================ */
 
 @theme {
+  /* Base colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+
   /* Brand Colors */
   --color-brand-red: #be202e;
   --color-brand-red-dark: #9c1a25;
@@ -55,7 +59,7 @@ body {
 }
 
 /* Focus visible ring */
-:focus-visible {
+:focus-visible:not(.outline-none) {
   outline: 2px solid var(--color-brand-red);
   outline-offset: 2px;
 }

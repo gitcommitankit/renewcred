@@ -1,9 +1,9 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, Bell } from 'lucide-react';
-
+import { LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { Button } from '@/components/ui/Button';
 
 export default function Topbar() {
   const { admin, logout, isLogoutLoading } = useAuth();
@@ -33,15 +33,19 @@ export default function Topbar() {
 
         <div className="h-5 w-px bg-warm-gray-200" />
 
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
           onClick={logout}
           disabled={isLogoutLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-charcoal-600 hover:text-brand-red hover:bg-red-50 rounded-lg transition-colors"
+          isLoading={isLogoutLoading}
+          leftIcon={<LogOut size={14} />}
+          className="text-xs font-medium text-charcoal-600 hover:text-brand-red hover:bg-red-50"
           aria-label="Logout"
         >
-          <LogOut size={14} />
           <span className="hidden sm:block">Logout</span>
-        </button>
+        </Button>
       </div>
     </header>
   );

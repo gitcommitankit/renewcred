@@ -13,6 +13,8 @@ import TableHeader from '@tiptap/extension-table-header';
 import Mathematics from '@tiptap/extension-mathematics';
 
 import 'katex/dist/katex.min.css';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import {
   Bold,
   Italic,
@@ -101,30 +103,23 @@ function LinkPopover({
   };
 
   return (
-    <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-warm-gray-200 rounded-xl shadow-lg p-3 flex gap-2 min-w-72">
-      <input
+    <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-warm-gray-200 rounded-xl shadow-lg p-3 flex gap-2 min-w-72 items-center">
+      <Input
         autoFocus
         type="url"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="https://example.com"
-        className="flex-1 text-sm px-2.5 py-1.5 border border-warm-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-red"
+        wrapperClassName="flex-1"
+        className="py-1 px-2.5 text-sm"
       />
-      <button
-        type="button"
-        onClick={() => onConfirm(url)}
-        className="px-3 py-1.5 text-xs font-medium bg-brand-red text-white rounded-lg hover:bg-brand-red-dark transition-colors"
-      >
+      <Button type="button" variant="primary" size="sm" onClick={() => onConfirm(url)}>
         Apply
-      </button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="px-3 py-1.5 text-xs font-medium border border-warm-gray-200 text-charcoal-700 rounded-lg hover:bg-warm-gray-100 transition-colors"
-      >
+      </Button>
+      <Button type="button" variant="outline" size="sm" onClick={onClose}>
         Cancel
-      </button>
+      </Button>
     </div>
   );
 }

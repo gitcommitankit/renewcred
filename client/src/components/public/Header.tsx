@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import Logo from '../ui/Logo';
+import { Button } from '../ui/Button';
 
 const NAV_LINKS = [
   { href: '/buyers', label: 'Buyers' },
@@ -68,19 +69,24 @@ export default function Header() {
 
           {/* CTA + Mobile toggle */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/standards"
-              className="hidden sm:inline-flex items-center px-4 py-2 bg-brand-red text-white! text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors"
+            <Button
+              asChild
+              variant="primary"
+              size="sm"
+              className="text-white! hidden sm:inline-flex"
             >
-              Registry
-            </Link>
-            <button
+              <Link href="/standards">Registry</Link>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setMobileOpen((v) => !v)}
-              className="md:hidden p-2 text-charcoal-700 hover:text-charcoal-900 hover:bg-warm-gray-100 rounded-md transition-colors"
+              className="md:hidden p-2 text-charcoal-700"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -106,12 +112,9 @@ export default function Header() {
             );
           })}
           <div className="pt-2 border-t border-warm-gray-200">
-            <Link
-              href="/standards"
-              className="block w-full text-center px-4 py-2.5 bg-brand-red text-white text-sm font-semibold rounded-lg hover:bg-brand-red-dark transition-colors"
-            >
-              Registry
-            </Link>
+            <Button asChild variant="primary" className="w-full text-white!">
+              <Link href="/standards">Registry</Link>
+            </Button>
           </div>
         </div>
       )}
