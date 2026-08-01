@@ -223,7 +223,9 @@ export default function VersionEditorPage() {
 
   useEffect(() => {
     if (activeSectionId && allSections.length > 0) {
-      const stillExists = allSections.some((s) => s.id === activeSectionId);
+      const stillExists =
+        allSections.some((s) => s.id === activeSectionId) ||
+        sectionDraftMap.current.has(activeSectionId);
       if (!stillExists) {
         sectionDraftMap.current.delete(activeSectionId);
         setActiveSectionId(null);

@@ -177,7 +177,7 @@ export const versionsApi = createApi({
     // --- Admin Sections ---
     createSection: builder.mutation<
       ApiResponse<Section>,
-      { versionId: string; data: CreateSectionInput; standardSlug: string; versionSlug: string }
+      { versionId: string; data: CreateSectionInput; standardSlug?: string; versionSlug?: string }
     >({
       query: ({ versionId, data }) => ({
         url: `/admin/versions/${versionId}/sections`,
@@ -186,12 +186,23 @@ export const versionsApi = createApi({
       }),
       // Invalidate the Version so the sidebar re-fetches with the new section
       invalidatesTags: (_result, _error, { versionId }) => [{ type: 'Version', id: versionId }],
-      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
+      async onQueryStarted({ versionId }, { dispatch, queryFulfilled }) {
         try {
-          await queryFulfilled;
-          await revalidateVersionPaths({ standardSlug, versionSlug });
+          const { data: res } = await queryFulfilled;
+          if (res?.data) {
+            dispatch(
+              versionsApi.util.updateQueryData('getVersionById', versionId, (draft) => {
+                if (draft?.data?.sections) {
+                  const exists = draft.data.sections.some((s) => s.id === res.data.id);
+                  if (!exists) {
+                    draft.data.sections.push(res.data);
+                  }
+                }
+              })
+            );
+          }
         } catch {
-          /* mutation failed — nothing to revalidate */
+          /* mutation failed */
         }
       },
     }),
@@ -228,6 +239,7 @@ export const versionsApi = createApi({
     // Silent auto-save — same API call as updateSection but no ISR revalidation.
     // Revalidation on every debounced keystroke would hammer the cache unnecessarily;
     // the manual Save button (which calls updateSection) is what busts the cache.
+    // We update the RTK Query in-memory cache directly via updateQueryData upon success.
     autoSaveSection: builder.mutation<
       ApiResponse<Section>,
       { id: string; versionId: string; data: UpdateSectionInput }
@@ -238,12 +250,29 @@ export const versionsApi = createApi({
         body: data,
       }),
       invalidatesTags: (_result, _error, { id }) => [{ type: 'Section', id }],
-      // Intentionally no onQueryStarted — auto-saves must not bust the ISR cache.
+      async onQueryStarted({ id, versionId, data }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            versionsApi.util.updateQueryData('getVersionById', versionId, (draft) => {
+              if (draft?.data?.sections) {
+                const target = draft.data.sections.find((s) => s.id === id);
+                if (target) {
+                  if (data.title !== undefined) target.title = data.title;
+                  if (data.content !== undefined) target.content = data.content;
+                }
+              }
+            })
+          );
+        } catch {
+          /* silent on auto-save error */
+        }
+      },
     }),
 
     deleteSection: builder.mutation<
       ApiResponse<null>,
-      { id: string; versionId: string; standardSlug: string; versionSlug: string }
+      { id: string; versionId: string; standardSlug?: string; versionSlug?: string }
     >({
       query: ({ id }) => ({
         url: `/admin/sections/${id}`,
@@ -251,14 +280,6 @@ export const versionsApi = createApi({
       }),
       // Invalidate the full Version so the sidebar loses the deleted section
       invalidatesTags: (_result, _error, { versionId }) => [{ type: 'Version', id: versionId }],
-      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          await revalidateVersionPaths({ standardSlug, versionSlug });
-        } catch {
-          /* mutation failed — nothing to revalidate */
-        }
-      },
     }),
 
     reorderSections: builder.mutation<
@@ -266,8 +287,8 @@ export const versionsApi = createApi({
       {
         versionId: string;
         sections: Array<ReorderSectionItem & { number: string }>;
-        standardSlug: string;
-        versionSlug: string;
+        standardSlug?: string;
+        versionSlug?: string;
       }
     >({
       query: ({ versionId, sections }) => ({
@@ -277,14 +298,6 @@ export const versionsApi = createApi({
       }),
       // Invalidate the full Version so the sidebar re-fetches with new order
       invalidatesTags: (_result, _error, { versionId }) => [{ type: 'Version', id: versionId }],
-      async onQueryStarted({ standardSlug, versionSlug }, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-          await revalidateVersionPaths({ standardSlug, versionSlug });
-        } catch {
-          /* mutation failed — nothing to revalidate */
-        }
-      },
     }),
   }),
 });
