@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -173,6 +173,9 @@ export default function VersionEditorPage() {
   const [showNewSection, setShowNewSection] = useState(false);
   const [newSection, setNewSection] = useState({ title: '', parentId: '' });
 
+  // Map to hold in-memory drafts for sections so switching sections before manual save preserves latest edits
+  const sectionDraftMap = useRef<Map<string, TiptapDocument>>(new Map());
+
   const buildEditorContent = useCallback((section: Section): TiptapDocument => {
     const base = section.content as TiptapDocument | null;
     const bodyNodes = base?.content ?? [];
@@ -201,11 +204,19 @@ export default function VersionEditorPage() {
     []
   );
 
+  // Sync current editorContent into sectionDraftMap whenever it changes
+  useEffect(() => {
+    if (activeSectionId && editorContent) {
+      sectionDraftMap.current.set(activeSectionId, editorContent);
+    }
+  }, [activeSectionId, editorContent]);
+
   useEffect(() => {
     if (allSections.length > 0 && !activeSectionId) {
       const first = allSections[0];
       setActiveSectionId(first.id);
-      setEditorContent(buildEditorContent(first));
+      const draft = sectionDraftMap.current.get(first.id);
+      setEditorContent(draft ?? buildEditorContent(first));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [!!allSections.length]);
@@ -214,6 +225,7 @@ export default function VersionEditorPage() {
     if (activeSectionId && allSections.length > 0) {
       const stillExists = allSections.some((s) => s.id === activeSectionId);
       if (!stillExists) {
+        sectionDraftMap.current.delete(activeSectionId);
         setActiveSectionId(null);
         setEditorContent(null);
         setEditorKey((k) => k + 1);
@@ -222,8 +234,11 @@ export default function VersionEditorPage() {
   }, [allSections, activeSectionId]);
 
   const handleSelectSection = (section: Section) => {
+    if (section.id === activeSectionId) return;
+    const draft = sectionDraftMap.current.get(section.id);
+    const contentToLoad = draft ?? buildEditorContent(section);
     setActiveSectionId(section.id);
-    setEditorContent(buildEditorContent(section));
+    setEditorContent(contentToLoad);
     setEditorKey((k) => k + 1);
   };
 
@@ -312,8 +327,10 @@ export default function VersionEditorPage() {
       toast.success('Section created');
       setShowNewSection(false);
       setNewSection({ title: '', parentId: '' });
+      const initialDoc = buildEditorContent(result.data);
+      sectionDraftMap.current.set(result.data.id, initialDoc);
       setActiveSectionId(result.data.id);
-      setEditorContent(buildEditorContent(result.data));
+      setEditorContent(initialDoc);
       setEditorKey((k) => k + 1);
     } catch (err: unknown) {
       toast.error(
@@ -332,6 +349,7 @@ export default function VersionEditorPage() {
         versionSlug: version?.slug ?? '',
       }).unwrap();
       toast.success('Section deleted');
+      sectionDraftMap.current.delete(deleteTarget.id);
       if (activeSectionId === deleteTarget.id) {
         setActiveSectionId(null);
         setEditorContent(null);
