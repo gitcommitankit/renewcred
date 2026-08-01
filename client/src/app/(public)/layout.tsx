@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Header from '@/components/public/Header';
 import Footer from '@/components/public/Footer';
 import BackToTop from '@/components/public/BackToTop';
+import PublicProviders from '@/components/providers/PublicProviders';
 
 export const metadata: Metadata = {
   title: {
@@ -14,11 +15,13 @@ export const metadata: Metadata = {
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <div className="flex-1">{children}</div>
-      <Footer />
-      <BackToTop />
-    </div>
+    <PublicProviders>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <div className="flex-1">{children}</div>
+        <Footer />
+        <BackToTop />
+      </div>
+    </PublicProviders>
   );
 }

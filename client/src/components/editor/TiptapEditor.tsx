@@ -152,7 +152,12 @@ export default function TiptapEditor({
             const currentLatex = node.attrs?.latex ?? '';
             const newLatex = prompt('Edit Math Equation (LaTeX):', currentLatex);
             if (newLatex !== null) {
-              editor?.chain().focus().setNodeSelection(pos).updateInlineMath({ latex: newLatex }).run();
+              editor
+                ?.chain()
+                .focus()
+                .setNodeSelection(pos)
+                .updateInlineMath({ latex: newLatex })
+                .run();
             }
           },
         },
@@ -161,7 +166,12 @@ export default function TiptapEditor({
             const currentLatex = node.attrs?.latex ?? '';
             const newLatex = prompt('Edit Block Math Equation (LaTeX):', currentLatex);
             if (newLatex !== null) {
-              editor?.chain().focus().setNodeSelection(pos).updateBlockMath({ latex: newLatex }).run();
+              editor
+                ?.chain()
+                .focus()
+                .setNodeSelection(pos)
+                .updateBlockMath({ latex: newLatex })
+                .run();
             }
           },
         },

@@ -1,16 +1,14 @@
 'use client';
 
-import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
-import { store } from '@/store/store';
 
-interface ProvidersProps {
+interface CommonProvidersProps {
   children: React.ReactNode;
 }
 
-export default function Providers({ children }: ProvidersProps) {
+export default function CommonProviders({ children }: CommonProvidersProps) {
   return (
-    <Provider store={store}>
+    <>
       {children}
       <Toaster
         position="bottom-right"
@@ -31,6 +29,6 @@ export default function Providers({ children }: ProvidersProps) {
           },
         }}
       />
-    </Provider>
+    </>
   );
 }

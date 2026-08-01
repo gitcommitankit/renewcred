@@ -1,6 +1,5 @@
-import Link from 'next/link';
-import { Link2 } from 'lucide-react';
 import TiptapRenderer from '@/components/public/TiptapRenderer';
+import CopySectionLink from '@/components/public/CopySectionLink';
 import type { Section } from '@/types';
 
 interface SectionBlockProps {
@@ -31,13 +30,7 @@ export default function SectionBlock({ section, allSections, depth = 0 }: Sectio
       <div className="flex items-center gap-2 group mb-4">
         <span className="text-sm font-mono text-warm-gray-400 shrink-0">{section.number}</span>
         <HeadingTag className={headingClass}>{section.title}</HeadingTag>
-        <Link
-          href={`#section-${section.id}`}
-          className="opacity-0 group-hover:opacity-100 text-warm-gray-400 hover:text-brand-red transition-all ml-1"
-          aria-label={`Link to ${section.title}`}
-        >
-          <Link2 size={16} />
-        </Link>
+        <CopySectionLink sectionId={section.id} sectionTitle={section.title} />
       </div>
 
       {section.content && <TiptapRenderer content={section.content} />}
